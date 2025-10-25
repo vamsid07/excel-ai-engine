@@ -5,8 +5,12 @@ AI-powered Excel data analysis and manipulation engine using Large Language Mode
 ## 🚀 Features
 
 - **Natural Language Queries**: Ask questions about your data in plain English
+- **AI-Powered Code Generation**: LLM generates optimized pandas code
+- **Multi-File Operations**: Join and merge multiple Excel files
+- **Batch Processing**: Execute multiple queries in sequence
+- **Export Results**: Save query results as new Excel files
+- **Query History**: Track and analyze past queries
 - **Comprehensive Operations**: Math, aggregations, filtering, pivoting, date operations, and joins
-- **Synthetic Data Generation**: Built-in data generator for testing
 - **REST API**: Clean and documented API endpoints
 - **Docker Support**: Fully containerized application
 - **Interactive Documentation**: Auto-generated Swagger UI

@@ -1,19 +1,29 @@
 """
-API routes for Excel AI Engine - Day 2 Implementation
+API routes for Excel AI Engine - Day 3 Complete Implementation
 """
 from fastapi import APIRouter, UploadFile, File, HTTPException, Form
-from typing import Optional
+from fastapi.responses import FileResponse
+from typing import Optional, List
 import os
 from pathlib import Path
 from app.services.llm_service import LLMService
 from app.services.excel_service import ExcelService
+from app.services.join_service import JoinService
+from app.services.export_service import ExportService
+from app.services.query_history import QueryHistory
+from app.services.batch_processor import BatchProcessor
 import json
+import time
 
 router = APIRouter()
 
 # Initialize services
 llm_service = LLMService()
 excel_service = ExcelService()
+join_service = JoinService()
+export_service = ExportService()
+query_history = QueryHistory()
+batch_processor = BatchProcessor()
 
 
 @router.post("/generate-sample-data")
@@ -21,30 +31,16 @@ async def generate_sample_data(
     rows: int = 1000,
     include_unstructured: bool = True
 ):
-    """
-    Generate sample Excel data for testing
-    
-    Args:
-        rows: Number of rows to generate
-        include_unstructured: Whether to include unstructured data sheet
-    
-    Returns:
-        Success message with file path
-    """
+    """Generate sample Excel data for testing"""
     try:
         from app.utils.data_generator import DataGenerator
         
         generator = DataGenerator()
-        
-        # Generate structured data
         structured_df = generator.generate_structured_data(rows=rows)
-        
-        # Generate unstructured data if requested
         unstructured_df = None
         if include_unstructured:
             unstructured_df = generator.generate_unstructured_data(rows=rows)
         
-        # Save to Excel
         filepath = generator.save_to_excel(
             structured_df, 
             unstructured_df,
@@ -58,40 +54,27 @@ async def generate_sample_data(
             "rows_generated": rows,
             "sheets": ["Structured_Data"] + (["Unstructured_Data"] if include_unstructured else [])
         }
-    
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating data: {str(e)}")
 
 
 @router.post("/upload")
 async def upload_excel(file: UploadFile = File(...)):
-    """
-    Upload an Excel file for processing
-    
-    Args:
-        file: Excel file to upload
-    
-    Returns:
-        File info and upload status
-    """
+    """Upload an Excel file for processing"""
     try:
-        # Validate file extension
         if not file.filename.endswith(('.xlsx', '.xls')):
             raise HTTPException(
                 status_code=400, 
                 detail="Invalid file format. Only .xlsx and .xls files are supported"
             )
         
-        # Create input directory if it doesn't exist
         Path("data/input").mkdir(parents=True, exist_ok=True)
-        
-        # Save the file
         file_path = f"data/input/{file.filename}"
+        
         with open(file_path, "wb") as buffer:
             content = await file.read()
             buffer.write(content)
         
-        # Read and analyze the file
         sheets = excel_service.list_sheets(file_path)
         file_size = os.path.getsize(file_path)
         
@@ -105,9 +88,42 @@ async def upload_excel(file: UploadFile = File(...)):
             "sheets": sheets,
             "sheet_count": len(sheets)
         }
-    
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error uploading file: {str(e)}")
+
+
+@router.post("/upload-multiple")
+async def upload_multiple_files(files: List[UploadFile] = File(...)):
+    """Upload multiple Excel files for joining"""
+    try:
+        uploaded_files = []
+        
+        for file in files:
+            if not file.filename.endswith(('.xlsx', '.xls')):
+                continue
+            
+            Path("data/input").mkdir(parents=True, exist_ok=True)
+            file_path = f"data/input/{file.filename}"
+            
+            with open(file_path, "wb") as buffer:
+                content = await file.read()
+                buffer.write(content)
+            
+            sheets = excel_service.list_sheets(file_path)
+            
+            uploaded_files.append({
+                "filename": file.filename,
+                "filepath": file_path,
+                "sheets": sheets
+            })
+        
+        return {
+            "status": "success",
+            "message": f"Uploaded {len(uploaded_files)} files",
+            "files": uploaded_files
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error uploading files: {str(e)}")
 
 
 @router.post("/query")
@@ -116,26 +132,15 @@ async def query_excel(
     query: str = Form(...),
     sheet_name: Optional[str] = Form(None)
 ):
-    """
-    Execute a natural language query on Excel data using AI
+    """Execute a natural language query on Excel data using AI"""
+    start_time = time.time()
     
-    Args:
-        filepath: Path to the Excel file
-        query: Natural language query describing the operation
-        sheet_name: Optional sheet name (defaults to first sheet)
-    
-    Returns:
-        Query results with generated code and explanation
-    """
     try:
-        # Validate file exists
         if not os.path.exists(filepath):
             raise HTTPException(status_code=404, detail=f"File not found: {filepath}")
         
-        # Read Excel file
         df, df_info = excel_service.read_excel(filepath, sheet_name)
         
-        # Generate pandas code using LLM
         llm_response = llm_service.generate_pandas_code(
             query=query,
             df_info=df_info,
@@ -143,27 +148,62 @@ async def query_excel(
         )
         
         if not llm_response['success']:
+            query_history.add_query(
+                query=query,
+                filepath=filepath,
+                result_type="error",
+                success=False,
+                execution_time=time.time() - start_time,
+                error=llm_response['error']
+            )
             raise HTTPException(
                 status_code=500, 
                 detail=f"LLM generation failed: {llm_response['error']}"
             )
         
-        # Validate the generated code
         try:
             validated_code = llm_service.validate_and_enhance_code(llm_response['code'])
         except ValueError as e:
+            query_history.add_query(
+                query=query,
+                filepath=filepath,
+                result_type="error",
+                success=False,
+                execution_time=time.time() - start_time,
+                error=str(e)
+            )
             raise HTTPException(status_code=400, detail=f"Code validation failed: {str(e)}")
         
-        # Execute the code
         execution_result = excel_service.execute_query_code(df, validated_code)
         
+        execution_time = time.time() - start_time
+        
         if not execution_result['success']:
+            query_history.add_query(
+                query=query,
+                filepath=filepath,
+                result_type="error",
+                success=False,
+                execution_time=execution_time,
+                generated_code=validated_code,
+                error=execution_result['error']
+            )
             raise HTTPException(
                 status_code=500,
                 detail=f"Execution failed: {execution_result['error']}"
             )
         
-        # Prepare response
+        # Add to history
+        query_history.add_query(
+            query=query,
+            filepath=filepath,
+            result_type=execution_result['result_type'],
+            success=True,
+            execution_time=execution_time,
+            generated_code=validated_code,
+            result_shape=execution_result.get('shape')
+        )
+        
         return {
             "status": "success",
             "query": query,
@@ -177,13 +217,331 @@ async def query_excel(
             "result_type": execution_result['result_type'],
             "result_shape": execution_result.get('shape'),
             "columns": execution_result.get('columns'),
-            "truncated": execution_result.get('truncated', False)
+            "truncated": execution_result.get('truncated', False),
+            "execution_time_seconds": round(execution_time, 3)
         }
-    
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Query execution error: {str(e)}")
+
+
+@router.post("/join")
+async def join_files(
+    file1: str = Form(...),
+    file2: str = Form(...),
+    join_columns: Optional[str] = Form(None),
+    how: str = Form("inner"),
+    sheet1: Optional[str] = Form(None),
+    sheet2: Optional[str] = Form(None)
+):
+    """Join two Excel files"""
+    try:
+        # Load files
+        df1, info1 = excel_service.read_excel(file1, sheet1)
+        df2, info2 = excel_service.read_excel(file2, sheet2)
+        
+        # Parse join columns
+        join_cols = None
+        if join_columns:
+            join_cols = [col.strip() for col in join_columns.split(',')]
+        
+        # Perform join
+        result_df = join_service.smart_join(df1, df2, join_cols, how)
+        
+        return {
+            "status": "success",
+            "file1": file1,
+            "file2": file2,
+            "join_type": how,
+            "join_columns": join_cols or join_service._detect_join_columns(df1, df2),
+            "input_shapes": {
+                "file1": info1['shape'],
+                "file2": info2['shape']
+            },
+            "result_shape": result_df.shape,
+            "result": result_df.head(100).to_dict(orient='records'),
+            "result_columns": result_df.columns.tolist()
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Join failed: {str(e)}")
+
+
+@router.post("/query-with-join")
+async def query_with_join(
+    file1: str = Form(...),
+    file2: str = Form(...),
+    query: str = Form(...),
+    join_columns: Optional[str] = Form(None),
+    how: str = Form("inner"),
+    sheet1: Optional[str] = Form(None),
+    sheet2: Optional[str] = Form(None)
+):
+    """Join two files and execute a query on the result"""
+    try:
+        # Load and join files
+        df1, _ = excel_service.read_excel(file1, sheet1)
+        df2, _ = excel_service.read_excel(file2, sheet2)
+        
+        join_cols = None
+        if join_columns:
+            join_cols = [col.strip() for col in join_columns.split(',')]
+        
+        joined_df = join_service.smart_join(df1, df2, join_cols, how)
+        
+        # Execute query on joined data
+        df_info = excel_service._extract_dataframe_info(joined_df)
+        
+        llm_response = llm_service.generate_pandas_code(query, df_info, "df")
+        
+        if not llm_response['success']:
+            raise HTTPException(status_code=500, detail=llm_response['error'])
+        
+        code = llm_service.validate_and_enhance_code(llm_response['code'])
+        execution_result = excel_service.execute_query_code(joined_df, code)
+        
+        if not execution_result['success']:
+            raise HTTPException(status_code=500, detail=execution_result['error'])
+        
+        return {
+            "status": "success",
+            "join_info": {
+                "file1": file1,
+                "file2": file2,
+                "join_type": how,
+                "joined_shape": joined_df.shape
+            },
+            "query": query,
+            "generated_code": code,
+            "explanation": llm_response['explanation'],
+            "result": execution_result['result'],
+            "result_type": execution_result['result_type']
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Join query failed: {str(e)}")
+
+
+@router.post("/analyze-join")
+async def analyze_join_potential(
+    file1: str = Form(...),
+    file2: str = Form(...),
+    sheet1: Optional[str] = Form(None),
+    sheet2: Optional[str] = Form(None)
+):
+    """Analyze potential for joining two files"""
+    try:
+        df1, _ = excel_service.read_excel(file1, sheet1)
+        df2, _ = excel_service.read_excel(file2, sheet2)
+        
+        analysis = join_service.analyze_join_potential(df1, df2)
+        
+        return {
+            "status": "success",
+            "analysis": analysis
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+
+
+@router.post("/export")
+async def export_result(
+    filepath: str = Form(...),
+    query: str = Form(...),
+    output_filename: Optional[str] = Form(None),
+    sheet_name: Optional[str] = Form(None),
+    formatted: bool = Form(False)
+):
+    """Execute query and export result to new Excel file"""
+    try:
+        # Execute query
+        df, df_info = excel_service.read_excel(filepath, sheet_name)
+        
+        llm_response = llm_service.generate_pandas_code(query, df_info, "df")
+        if not llm_response['success']:
+            raise HTTPException(status_code=500, detail=llm_response['error'])
+        
+        code = llm_service.validate_and_enhance_code(llm_response['code'])
+        execution_result = excel_service.execute_query_code(df, code)
+        
+        if not execution_result['success']:
+            raise HTTPException(status_code=500, detail=execution_result['error'])
+        
+        # Convert result to DataFrame
+        if execution_result['result_type'] == 'dataframe':
+            import pandas as pd
+            result_df = pd.DataFrame(execution_result['result'])
+        else:
+            raise HTTPException(
+                status_code=400, 
+                detail="Query result is not a DataFrame. Only DataFrame results can be exported."
+            )
+        
+        # Export
+        if formatted:
+            output_path = export_service.export_with_formatting(
+                result_df, 
+                output_filename or "query_result.xlsx",
+                sheet_name="Result"
+            )
+        else:
+            output_path = export_service.export_to_excel(
+                result_df,
+                output_filename,
+                sheet_name="Result"
+            )
+        
+        summary = export_service.get_export_summary(result_df)
+        
+        return {
+            "status": "success",
+            "message": "Query executed and result exported",
+            "query": query,
+            "output_file": output_path,
+            "summary": summary,
+            "download_url": f"/api/v1/download/{Path(output_path).name}"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+
+
+@router.get("/download/{filename}")
+async def download_file(filename: str):
+    """Download an exported file"""
+    try:
+        file_path = Path("data/output") / filename
+        
+        if not file_path.exists():
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        return FileResponse(
+            path=str(file_path),
+            filename=filename,
+            media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Download failed: {str(e)}")
+
+
+@router.get("/exports")
+async def list_exports():
+    """List all exported files"""
+    try:
+        exports = export_service.list_exports()
+        return {
+            "status": "success",
+            "exports": exports,
+            "count": len(exports)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error listing exports: {str(e)}")
+
+
+@router.post("/batch-query")
+async def batch_query(
+    filepath: str = Form(...),
+    queries: str = Form(...),
+    chain: bool = Form(False),
+    sheet_name: Optional[str] = Form(None)
+):
+    """Execute multiple queries in batch"""
+    try:
+        # Parse queries (expects JSON array)
+        query_list = json.loads(queries)
+        
+        if not isinstance(query_list, list):
+            raise HTTPException(status_code=400, detail="Queries must be a JSON array")
+        
+        df, _ = excel_service.read_excel(filepath, sheet_name)
+        
+        result = batch_processor.process_batch(df, query_list, chain_results=chain)
+        
+        return {
+            "status": "success",
+            "batch_result": result
+        }
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON in queries parameter")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Batch processing failed: {str(e)}")
+
+
+@router.get("/history")
+async def get_query_history(
+    limit: int = 10,
+    success_only: bool = False
+):
+    """Get recent query history"""
+    try:
+        history = query_history.get_recent_queries(limit, success_only)
+        return {
+            "status": "success",
+            "history": history,
+            "count": len(history)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error retrieving history: {str(e)}")
+
+
+@router.get("/history/{query_id}")
+async def get_query_by_id(query_id: str):
+    """Get specific query by ID"""
+    try:
+        query = query_history.get_query_by_id(query_id)
+        if query is None:
+            raise HTTPException(status_code=404, detail="Query not found")
+        return {
+            "status": "success",
+            "query": query
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+
+@router.get("/history/search/{search_term}")
+async def search_history(search_term: str, limit: int = 20):
+    """Search query history"""
+    try:
+        results = query_history.search_queries(search_term, limit)
+        return {
+            "status": "success",
+            "search_term": search_term,
+            "results": results,
+            "count": len(results)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
+
+
+@router.get("/history/stats")
+async def get_history_statistics():
+    """Get query history statistics"""
+    try:
+        stats = query_history.get_statistics()
+        return {
+            "status": "success",
+            "statistics": stats
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+
+
+@router.delete("/history")
+async def clear_history():
+    """Clear all query history"""
+    try:
+        query_history.clear_history()
+        return {
+            "status": "success",
+            "message": "Query history cleared"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
 
 
 @router.post("/analyze")
@@ -191,16 +549,7 @@ async def analyze_excel(
     filepath: str = Form(...),
     sheet_name: Optional[str] = Form(None)
 ):
-    """
-    Get detailed analysis of an Excel file
-    
-    Args:
-        filepath: Path to the Excel file
-        sheet_name: Optional sheet name
-    
-    Returns:
-        Comprehensive data analysis
-    """
+    """Get detailed analysis of an Excel file"""
     try:
         if not os.path.exists(filepath):
             raise HTTPException(status_code=404, detail=f"File not found: {filepath}")
@@ -221,22 +570,13 @@ async def analyze_excel(
                 "statistics": df_info['statistics']
             }
         }
-    
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Analysis error: {str(e)}")
 
 
 @router.get("/sheets/{filepath:path}")
 async def list_sheets(filepath: str):
-    """
-    List all sheets in an Excel file
-    
-    Args:
-        filepath: Path to Excel file
-    
-    Returns:
-        List of sheet names
-    """
+    """List all sheets in an Excel file"""
     try:
         if not os.path.exists(filepath):
             raise HTTPException(status_code=404, detail=f"File not found: {filepath}")
@@ -249,152 +589,33 @@ async def list_sheets(filepath: str):
             "sheets": sheets,
             "count": len(sheets)
         }
-    
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error listing sheets: {str(e)}")
 
 
 @router.get("/operations")
 async def list_supported_operations():
-    """
-    List all supported operations with examples
-    
-    Returns:
-        Comprehensive list of operations
-    """
+    """List all supported operations with examples"""
     operations = {
-        "basic_math": {
-            "description": "Perform mathematical operations on columns",
-            "examples": [
-                "Add salary and bonus columns",
-                "Multiply price by 1.15 for new column",
-                "Calculate profit margin (revenue - cost) / revenue",
-                "Square root of all values in column"
-            ],
-            "capabilities": [
-                "Addition, subtraction, multiplication, division",
-                "Complex formulas with multiple columns",
-                "Mathematical functions (sqrt, log, exp, etc.)",
-                "Conditional calculations"
-            ]
+        "basic_operations": {
+            "query": "Simple queries on single files",
+            "join": "Merge multiple Excel files",
+            "export": "Save query results to new files",
+            "batch": "Execute multiple queries at once"
         },
-        "aggregations": {
-            "description": "Calculate summary statistics and groupby operations",
-            "examples": [
-                "Calculate average salary by department",
-                "Sum of sales grouped by region and product",
-                "Count of employees per city",
-                "Find min, max, median, std deviation",
-                "Multiple aggregations: sum, mean, count together"
-            ],
-            "capabilities": [
-                "Single and multiple groupby columns",
-                "Multiple aggregation functions",
-                "Custom aggregations",
-                "Percentiles and quantiles"
-            ]
-        },
-        "filtering": {
-            "description": "Filter data based on any conditions",
-            "examples": [
-                "Show all rows where salary > 50000",
-                "Filter employees from Engineering AND age < 35",
-                "Get records where city is Mumbai or Delhi",
-                "Complex conditions: (age > 30 AND salary > 60000) OR department is 'Sales'",
-                "Filter by date range: join_date between 2020 and 2023"
-            ],
-            "capabilities": [
-                "Single and multiple conditions",
-                "AND, OR, NOT logic",
-                "Comparison operators (>, <, >=, <=, ==, !=)",
-                "String operations (contains, startswith, endswith)",
-                "Date comparisons"
-            ]
-        },
-        "date_operations": {
-            "description": "Work with date and time columns",
-            "examples": [
-                "Extract year, month, day from date column",
-                "Calculate age from birthdate",
-                "Find difference in days between two dates",
-                "Filter records from last 30 days",
-                "Group by month and year",
-                "Calculate tenure in years"
-            ],
-            "capabilities": [
-                "Date extraction (year, month, day, weekday)",
-                "Date arithmetic (difference, addition)",
-                "Date filtering and comparisons",
-                "Convert string to datetime",
-                "Time-based grouping"
-            ]
-        },
-        "pivot": {
-            "description": "Create and manipulate pivot tables",
-            "examples": [
-                "Pivot table with department as rows and average salary",
-                "Multi-level pivot: region and department vs product sales",
-                "Unpivot table back to long format",
-                "Cross-tabulation of two categorical variables"
-            ],
-            "capabilities": [
-                "Single and multi-index pivots",
-                "Multiple value columns",
-                "Different aggregation functions",
-                "Pivot and unpivot operations"
-            ]
-        },
-        "joining": {
-            "description": "Merge datasets together",
-            "examples": [
-                "Inner join two tables on employee_id",
-                "Left join to keep all records from first table",
-                "Join on multiple columns",
-                "Concatenate tables vertically"
-            ],
-            "capabilities": [
-                "Inner, left, right, outer joins",
-                "Single and multiple key joins",
-                "Vertical concatenation",
-                "Merge with indicator column"
-            ]
-        },
-        "sorting": {
-            "description": "Sort data by columns",
-            "examples": [
-                "Sort by salary descending",
-                "Sort by department then salary",
-                "Get top 10 highest paid employees"
-            ]
-        },
-        "text_operations": {
-            "description": "String manipulation and analysis",
-            "examples": [
-                "Convert names to uppercase",
-                "Extract first name from full name",
-                "Count words in text column",
-                "Check if email contains domain",
-                "Concatenate first and last name"
-            ]
-        },
-        "statistical": {
-            "description": "Advanced statistical operations",
-            "examples": [
-                "Calculate correlation between columns",
-                "Find outliers using IQR method",
-                "Normalize values to 0-1 range",
-                "Calculate z-scores",
-                "Moving averages"
-            ]
+        "examples": {
+            "aggregation": "Calculate average salary by department",
+            "filtering": "Show employees with salary > 100000",
+            "join": "Join sales.xlsx with customers.xlsx on customer_id",
+            "export": "Filter data and export to high_performers.xlsx",
+            "batch": "Filter, then group, then sort - all in one request"
         }
     }
     
     return {
         "status": "success",
-        "message": "This AI system can handle ANY query! These are just examples.",
-        "supported_operations": operations,
-        "total_categories": len(operations),
-        "note": "The LLM can understand and execute queries beyond these examples. Try anything!"
+        "message": "This AI system can handle ANY query!",
+        "operations": operations
     }
 
 
@@ -402,9 +623,7 @@ async def list_supported_operations():
 async def health_check():
     """Check if services are operational"""
     try:
-        # Test LLM connection
-        test_response = llm_service.client.models.list()
-        llm_status = "operational"
+        llm_status = "operational" if llm_service else "error"
     except:
         llm_status = "error"
     
@@ -413,7 +632,11 @@ async def health_check():
         "services": {
             "api": "operational",
             "llm": llm_status,
-            "excel_processing": "operational"
+            "excel_processing": "operational",
+            "join_service": "operational",
+            "export_service": "operational",
+            "query_history": "operational",
+            "batch_processor": "operational"
         },
-        "version": "2.0.0"
+        "version": "3.0.0 - Day 3 Complete"
     }

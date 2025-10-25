@@ -1,0 +1,86 @@
+[
+  {
+    "id": "259f9612-91ed-470d-9e78-39ab0ff521b3",
+    "timestamp": "2025-10-25T11:22:22.081114",
+    "query": "Calculate average salary by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.067,
+    "generated_code": null,
+    "error": "LLM error: Ollama error: HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x12587aa80>: Failed to establish a new connection: [Errno 61] Connection refused'))",
+    "result_shape": null
+  },
+  {
+    "id": "c81a6d9f-7d44-4968-a912-04673679927c",
+    "timestamp": "2025-10-25T11:23:27.469387",
+    "query": "Calculate average salary by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 7.914,
+    "generated_code": "# Group by department and calculate mean salary\nresult = df.groupby('department')['salary'].mean().reset_index()",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "3eb20cb9-3a21-4616-89cf-0cb87a77549c",
+    "timestamp": "2025-10-25T11:27:07.726328",
+    "query": "Calculate average salary",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "scalar",
+    "success": true,
+    "execution_time_seconds": 3.743,
+    "generated_code": "# Calculate average salary\nresult = df['salary'].mean()",
+    "error": null,
+    "result_shape": null
+  },
+  {
+    "id": "d654edc2-4ec2-4adc-8922-291da65cae55",
+    "timestamp": "2025-10-25T11:27:11.795418",
+    "query": "Show employees with salary greater than 50000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.94,
+    "generated_code": "# Filter employees with salary > 50000\nresult = df[df['salary'] > 50000]",
+    "error": null,
+    "result_shape": [
+      89,
+      10
+    ]
+  },
+  {
+    "id": "d9b1d918-cf66-4f88-91e3-4f8b2f9ff67b",
+    "timestamp": "2025-10-25T11:27:15.974210",
+    "query": "Calculate average salary by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.03,
+    "generated_code": "# Group by department and calculate mean salary\nresult = df.groupby('department')['salary'].mean().reset_index()",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "e35d68a2-25ca-477b-83cb-a505e15d0505",
+    "timestamp": "2025-10-25T11:27:20.636672",
+    "query": "Add a column for salary doubled",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.539,
+    "generated_code": "# Add a column for salary doubled\nresult = df['salary'] * 2\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      10
+    ]
+  }
+]
