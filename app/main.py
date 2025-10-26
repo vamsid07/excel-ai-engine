@@ -3,6 +3,21 @@ Main FastAPI application entry point
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+from app.core.config import settings
+from app.api import routes
+from pathlib import Path
+
+# Create FastAPI app
+app = FastAPI(
+    title="Excel AI Engine",
+    description="AI-powered Excel data analysis and manipulation engine",
+    version="4.0.0",
+    docs_url="/api/docs",
+)
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.api import routes
 
@@ -11,8 +26,8 @@ app = FastAPI(
     title="Excel AI Engine",
     description="AI-powered Excel data analysis and manipulation engine",
     version="1.0.0",
-    docs_url="/docs",  # Swagger UI
-    redoc_url="/redoc"  # ReDoc UI
+    docs_url="/api/docs",  # Move Swagger to /api/docs
+    redoc_url="/api/redoc"  # Move ReDoc to /api/redoc
 )
 
 # Add CORS middleware
@@ -24,19 +39,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Create static directory if it doesn't exist
+static_dir = Path("app/static")
+static_dir.mkdir(parents=True, exist_ok=True)
+
+# Mount static files
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
 # Include API routes
 app.include_router(routes.router, prefix="/api/v1")
 
 
 @app.get("/")
 async def root():
-    """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "message": "Excel AI Engine is running",
-        "version": "1.0.0",
-        "docs": "/docs"
-    }
+    """Serve the web UI"""
+    return FileResponse("app/static/index.html")
 
 
 @app.get("/health")
@@ -44,8 +61,16 @@ async def health_check():
     """Detailed health check"""
     return {
         "status": "healthy",
-        "api_version": "1.0.0",
-        "debug_mode": settings.DEBUG
+        "api_version": "4.0.0",
+        "debug_mode": settings.DEBUG,
+        "features": {
+            "web_ui": True,
+            "natural_language_queries": True,
+            "multi_file_joins": True,
+            "batch_processing": True,
+            "export": True,
+            "history": True
+        }
     }
 
 

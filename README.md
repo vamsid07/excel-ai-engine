@@ -4,16 +4,17 @@ AI-powered Excel data analysis and manipulation engine using Large Language Mode
 
 ## 🚀 Features
 
-- **Natural Language Queries**: Ask questions about your data in plain English
-- **AI-Powered Code Generation**: LLM generates optimized pandas code
-- **Multi-File Operations**: Join and merge multiple Excel files
-- **Batch Processing**: Execute multiple queries in sequence
-- **Export Results**: Save query results as new Excel files
-- **Query History**: Track and analyze past queries
-- **Comprehensive Operations**: Math, aggregations, filtering, pivoting, date operations, and joins
-- **REST API**: Clean and documented API endpoints
-- **Docker Support**: Fully containerized application
-- **Interactive Documentation**: Auto-generated Swagger UI
+- **🌐 Interactive Web Interface** - Beautiful, modern UI for non-technical users
+- **🤖 Natural Language Queries** - Ask questions about your data in plain English
+- **📊 Real-time Results** - Instant query execution with visual feedback
+- **🎨 Data Visualization** - Tables, charts, and statistics
+- **💾 Export Functionality** - Download results as formatted Excel files
+- **📜 Query History** - Track and replay previous queries
+- **🔗 Multi-File Operations** - Join and merge multiple Excel files
+- **⚡ Batch Processing** - Execute multiple queries in sequence
+- **🎯 Smart Suggestions** - AI-powered query recommendations
+- **📱 Responsive Design** - Works on desktop, tablet, and mobile
+- **🚀 Production Ready** - Comprehensive error handling and validation
 
 ## 📋 Prerequisites
 
@@ -86,57 +87,100 @@ This creates a file at `data/output/sample_data.xlsx` with:
 
 ## 🔌 API Endpoints
 
-### 1. Generate Sample Data
-```bash
-POST /api/v1/generate-sample-data?rows=1000&include_unstructured=true
-```
+### Core Operations
+- `POST /api/v1/generate-sample-data` - Generate synthetic test data
+- `POST /api/v1/upload` - Upload single Excel file
+- `POST /api/v1/upload-multiple` - Upload multiple files
+- `POST /api/v1/query` - Execute natural language query
+- `POST /api/v1/analyze` - Get detailed data analysis
+- `GET /api/v1/sheets/{filepath}` - List sheets in file
 
-### 2. Upload Excel File
-```bash
-POST /api/v1/upload
-Content-Type: multipart/form-data
-Body: file (Excel file)
-```
+### Join Operations (New in Day 3)
+- `POST /api/v1/join` - Join two Excel files
+- `POST /api/v1/query-with-join` - Join and query in one operation
+- `POST /api/v1/analyze-join` - Analyze join potential
 
-### 3. Query Excel Data
-```bash
-POST /api/v1/query
-Content-Type: multipart/form-data
-Body: 
-  - filepath: "data/input/sample_data.xlsx"
-  - query: "Calculate average salary by department"
-```
+### Export Operations (New in Day 3)
+- `POST /api/v1/export` - Execute query and export result
+- `GET /api/v1/download/{filename}` - Download exported file
+- `GET /api/v1/exports` - List all exported files
 
-### 4. List Supported Operations
-```bash
-GET /api/v1/operations
-```
+### Batch Processing (New in Day 3)
+- `POST /api/v1/batch-query` - Execute multiple queries
+
+### Query History (New in Day 3)
+- `GET /api/v1/history` - Get recent queries
+- `GET /api/v1/history/{id}` - Get specific query
+- `GET /api/v1/history/search/{term}` - Search history
+- `GET /api/v1/history/stats` - Get statistics
+- `DELETE /api/v1/history` - Clear history
+
+### System
+- `GET /api/v1/operations` - List supported operations
+- `GET /api/v1/health` - Health check
 
 ## 📖 Usage Examples
 
-### Example 1: Generate and Query Data
+### Example 1: Simple Query
 
 ```bash
-# 1. Generate sample data
+# Generate data
 curl -X POST "http://localhost:8000/api/v1/generate-sample-data"
 
-# 2. Query the data
+# Query it
 curl -X POST "http://localhost:8000/api/v1/query" \
   -F "filepath=data/output/sample_data.xlsx" \
   -F "query=Calculate average salary by department"
 ```
 
-### Example 2: Upload Your Own Excel
+### Example 2: Join Multiple Files
 
 ```bash
-# Upload your Excel file
-curl -X POST "http://localhost:8000/api/v1/upload" \
-  -F "file=@/path/to/your/data.xlsx"
+# Upload files
+curl -X POST "http://localhost:8000/api/v1/upload" -F "file=@employees.xlsx"
+curl -X POST "http://localhost:8000/api/v1/upload" -F "file=@departments.xlsx"
 
-# Query it
-curl -X POST "http://localhost:8000/api/v1/query" \
-  -F "filepath=data/input/your_file.xlsx" \
-  -F "query=Show me all rows where revenue > 10000"
+# Join and query
+curl -X POST "http://localhost:8000/api/v1/query-with-join" \
+  -F "file1=data/input/employees.xlsx" \
+  -F "file2=data/input/departments.xlsx" \
+  -F "query=Show average salary by department with budget information" \
+  -F "join_columns=department"
+```
+
+### Example 3: Batch Processing
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/batch-query" \
+  -F "filepath=data/output/sample_data.xlsx" \
+  -F 'queries=["Filter salary > 80000", "Group by department", "Sort by average descending"]' \
+  -F "chain=true"
+```
+
+### Example 4: Export Results
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/export" \
+  -F "filepath=data/output/sample_data.xlsx" \
+  -F "query=Show top 10 highest paid employees" \
+  -F "output_filename=high_earners.xlsx" \
+  -F "formatted=true"
+
+# Download
+open http://localhost:8000/api/v1/download/high_earners.xlsx
+```
+
+### Example 5: Query History
+
+```bash
+# View recent queries
+curl "http://localhost:8000/api/v1/history?limit=10"
+
+# Get statistics
+curl "http://localhost:8000/api/v1/history/stats"
+
+# Search history
+curl "http://localhost:8000/api/v1/history/search/salary"
 ```
 
 ## 🧪 Running Tests
@@ -224,18 +268,20 @@ excel-ai-engine/
 - ✅ Docker configuration
 - ✅ Documentation
 
-### Day 2 Progress
-- ✅ LLM service for intelligent query interpretation
-- ✅ Excel service with safe code execution
-- ✅ Complete query endpoint implementation
-- ✅ Comprehensive error handling
-- ✅ Unit tests (pytest)
-- ✅ Testing guide with examples
+### Day 3 Progress ✅
+- ✅ Join service for multi-file operations
+- ✅ Export service with formatted Excel output
+- ✅ Query history with search and statistics
+- ✅ Batch processing (independent and chained)
+- ✅ File download endpoints
+- ✅ Enhanced error handling
+- ✅ Comprehensive testing guide
 
-### Upcoming (Day 3+)
-- 🔄 Advanced operations (joins, complex pivots)
-- 🔄 Unstructured data analysis (optional)
-- 🔄 Performance optimizations
+### Optional Enhancements (Day 4+)
+- 🔄 Web UI for non-technical users
+- 🔄 Data visualization/charts
+- 🔄 Advanced caching and performance optimization
+- 🔄 Unstructured data analysis (sentiment, summarization)
 
 ## 🤝 Contributing
 

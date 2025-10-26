@@ -82,5 +82,77 @@
       100,
       10
     ]
+  },
+  {
+    "id": "910b7b1e-b2b7-45a3-9b4d-c44edad6b1c5",
+    "timestamp": "2025-10-26T23:06:50.702843",
+    "query": "Can i get the names starting with A ?",
+    "filepath": "data/input/Amazon - SDE.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 18.882,
+    "generated_code": "# Filter rows where College Name starts with 'A'\ndf = df[df['College Name'].str.startswith('A')]\nresult = df",
+    "error": null,
+    "result_shape": [
+      0,
+      22
+    ]
+  },
+  {
+    "id": "32ebc358-4f2d-42e2-9e14-7465cea79610",
+    "timestamp": "2025-10-26T23:07:14.536575",
+    "query": "Show first 10 rows",
+    "filepath": "data/input/Amazon - SDE.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.533,
+    "generated_code": "# Show first 10 rows\nresult = df.head(10)\n",
+    "error": null,
+    "result_shape": [
+      10,
+      22
+    ]
+  },
+  {
+    "id": "49134d6d-492d-4c3f-857a-38706283fd79",
+    "timestamp": "2025-10-26T23:07:47.563029",
+    "query": "what are the top 5 highest CGPAs",
+    "filepath": "data/input/Amazon - SDE.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 5.909,
+    "generated_code": "# Sort the DataFrame by CGPA in descending order and select top 5 rows\nresult = df.sort_values(by='CGPA on a Scale of 4/5/8/10/100', ascending=False).head(5)",
+    "error": null,
+    "result_shape": [
+      5,
+      22
+    ]
+  },
+  {
+    "id": "3573c26b-e9cc-4c17-b5c0-20ea96758549",
+    "timestamp": "2025-10-26T23:08:23.620722",
+    "query": "Show statistical summary",
+    "filepath": "data/input/Amazon - SDE.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 5.433,
+    "generated_code": "# Calculate statistical summary\nresult = df.describe()\n",
+    "error": null,
+    "result_shape": [
+      8,
+      3
+    ]
+  },
+  {
+    "id": "3e1436bf-fc4c-4029-951d-1c94cf7da2e0",
+    "timestamp": "2025-10-26T23:08:54.735518",
+    "query": "what is the highest cgpa",
+    "filepath": "data/input/Amazon - SDE.xlsx",
+    "result_type": "other",
+    "success": true,
+    "execution_time_seconds": 5.456,
+    "generated_code": "# Find the highest CGPA\nresult = df['CGPA on a Scale of 4/5/8/10/100'].max()",
+    "error": null,
+    "result_shape": null
   }
 ]
