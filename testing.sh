@@ -4,21 +4,19 @@
 
 BASE_URL="http://localhost:8000/api/v1"
 
-echo "🧪 Excel AI Engine - Complete Testing Suite"
+echo "Excel AI Engine - Complete Testing Suite"
 echo "==========================================="
 echo ""
 
-# Color codes
 GREEN='\033[0;32m'
 RED='\033[0;31m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+NC='\033[0m' 
 
 test_count=0
 passed=0
 failed=0
 
-# Helper function to run test
 run_test() {
     test_count=$((test_count + 1))
     test_name=$1
@@ -43,7 +41,7 @@ run_test() {
     echo ""
 }
 
-# Check if server is running
+
 echo "0️⃣  Checking if server is running..."
 if ! curl -s "$BASE_URL/health" > /dev/null; then
     echo -e "${RED}❌ Server is not running!${NC}"
@@ -53,12 +51,11 @@ fi
 echo -e "${GREEN}✅ Server is running${NC}"
 echo ""
 
-# Generate sample data
+
 echo "📊 Generating sample data..."
 run_test "Generate Sample Data" \
     "curl -s -X POST '$BASE_URL/generate-sample-data?rows=100&include_unstructured=true'"
 
-# Test 1: Basic Math Operations
 echo "🧮 TEST 1: BASIC MATH OPERATIONS"
 echo "================================"
 
@@ -80,7 +77,6 @@ run_test "1.3: Division operation" \
     -F 'sheet_name=Structured_Data' \
     -F 'query=Calculate monthly salary by dividing salary by 12'"
 
-# Test 2: Aggregations
 echo "📊 TEST 2: AGGREGATION OPERATIONS"
 echo "=================================="
 
@@ -108,7 +104,6 @@ run_test "2.4: Standard deviation" \
     -F 'sheet_name=Structured_Data' \
     -F 'query=Calculate standard deviation of salary by department'"
 
-# Test 3: Filtering
 echo "🔍 TEST 3: FILTER OPERATIONS"
 echo "============================"
 
@@ -136,7 +131,6 @@ run_test "3.4: String contains filter" \
     -F 'sheet_name=Structured_Data' \
     -F 'query=Find all employees whose city name contains New'"
 
-# Test 4: Date Operations
 echo "📅 TEST 4: DATE OPERATIONS"
 echo "=========================="
 
@@ -164,7 +158,7 @@ run_test "4.4: Filter by date range" \
     -F 'sheet_name=Structured_Data' \
     -F 'query=Show employees who joined after 2020'"
 
-# Test 5: Pivot Operations
+
 echo "🔄 TEST 5: PIVOT OPERATIONS"
 echo "==========================="
 
@@ -186,7 +180,6 @@ run_test "5.3: Pivot with sum aggregation" \
     -F 'sheet_name=Structured_Data' \
     -F 'query=Pivot table showing total projects_completed by department'"
 
-# Test 6: Unpivot Operations
 echo "↩️  TEST 6: UNPIVOT OPERATIONS"
 echo "=============================="
 
@@ -196,11 +189,9 @@ run_test "6.1: Unpivot/Melt data" \
     -F 'sheet_name=Structured_Data' \
     -F 'query=Unpivot the data keeping id and name as identifiers and converting salary, age, projects_completed into separate rows'"
 
-# Test 7: Joining Operations
 echo "🔗 TEST 7: JOIN OPERATIONS"
 echo "=========================="
 
-# First, generate two separate files for joining
 echo "Creating second file for join test..."
 curl -s -X POST "$BASE_URL/generate-sample-data?rows=50&include_unstructured=false" > /dev/null
 
@@ -213,7 +204,6 @@ run_test "7.2: Analyze join potential (auto-detect common columns)" \
     -F 'sheet_name=Structured_Data' \
     -F 'query=Show first 5 rows to understand the structure'"
 
-# Test 8: Unstructured Data Operations
 echo "📝 TEST 8: UNSTRUCTURED DATA (TEXT ANALYSIS)"
 echo "============================================="
 
@@ -241,7 +231,6 @@ run_test "8.4: Text contains filter" \
     -F 'sheet_name=Unstructured_Data' \
     -F 'query=Show all rows where product_review contains the word quality'"
 
-# Additional Tests: Complex Queries
 echo "🎯 BONUS: COMPLEX OPERATIONS"
 echo "============================="
 
@@ -263,7 +252,6 @@ run_test "9.3: Ranking" \
     -F 'sheet_name=Structured_Data' \
     -F 'query=Rank employees by salary within each department'"
 
-# Test Error Handling
 echo "⚠️  ERROR HANDLING TESTS"
 echo "========================"
 
@@ -283,7 +271,6 @@ run_test "10.3: Invalid column name" \
     -F 'sheet_name=Structured_Data' \
     -F 'query=Calculate average of nonexistent_column'"
 
-# Test Export Functionality
 echo "💾 EXPORT TESTS"
 echo "==============="
 
@@ -298,7 +285,6 @@ run_test "11.1: Export query results" \
 run_test "11.2: Download exported file" \
     "curl -s -I '$BASE_URL/download/top_earners.xlsx' | head -n 1"
 
-# Test Analysis Endpoint
 echo "🔍 ANALYSIS TESTS"
 echo "================="
 
@@ -307,7 +293,6 @@ run_test "12.1: Analyze Excel file structure" \
     -F 'filepath=data/output/sample_data.xlsx' \
     -F 'sheet_name=Structured_Data'"
 
-# Test History
 echo "📜 HISTORY TESTS"
 echo "================"
 
@@ -317,7 +302,6 @@ run_test "13.1: Get query history" \
 run_test "13.2: Get history statistics" \
     "curl -s -X GET '$BASE_URL/history/stats'"
 
-# Summary
 echo ""
 echo "========================================="
 echo "📊 TEST SUMMARY"

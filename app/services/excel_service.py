@@ -1,6 +1,3 @@
-"""
-Excel processing service with safe code execution
-"""
 import pandas as pd
 import numpy as np
 from typing import Dict, Any, Tuple, Optional
@@ -10,33 +7,27 @@ import traceback
 
 
 class ExcelService:
-    """Service for Excel file operations and data processing"""
     
     def __init__(self):
         self.max_sample_rows = 3
-        self.max_result_rows = 10000  # Limit result size
+        self.max_result_rows = 10000
     
     def read_excel(
         self, 
         filepath: str, 
         sheet_name: Optional[str] = None
     ) -> Tuple[pd.DataFrame, Dict[str, Any]]:
-        """
-        Read Excel or CSV file and extract metadata
-        """
+        
         try:
-            # Handle CSV files
             if filepath.endswith('.csv'):
                 df = pd.read_csv(filepath)
                 sheet_name = 'CSV'
             else:
-                # Read Excel file
                 if sheet_name:
                     df = pd.read_excel(filepath, sheet_name=sheet_name)
                 else:
                     df = pd.read_excel(filepath)
             
-            # Extract metadata
             metadata = self._extract_dataframe_info(df)
             metadata['filepath'] = filepath
             metadata['sheet_name'] = sheet_name or 'default'
@@ -47,7 +38,6 @@ class ExcelService:
             raise ValueError(f"Error reading file: {str(e)}")
     
     def list_sheets(self, filepath: str) -> list:
-        """List all sheet names in an Excel file or return ['CSV'] for CSV files"""
         try:
             if filepath.endswith('.csv'):
                 return ['CSV']
@@ -57,13 +47,10 @@ class ExcelService:
             raise ValueError(f"Error reading file sheets: {str(e)}")
     
     def _extract_dataframe_info(self, df: pd.DataFrame) -> Dict[str, Any]:
-        """Extract comprehensive information with better sample data"""
         
-        # Get first 5 rows for sample (better context for LLM)
         sample_df = df.head(5)
         sample_str = sample_df.to_string(index=False)
         
-        # Get statistics for numerical columns
         try:
             stats_df = df.describe()
             stats_str = stats_df.to_string()
@@ -74,7 +61,7 @@ class ExcelService:
             'shape': df.shape,
             'columns': df.columns.tolist(),
             'dtypes': [str(dtype) for dtype in df.dtypes],
-            'sample_data': sample_str,  # This is what LLM sees
+            'sample_data': sample_str,
             'statistics': stats_str,
             'memory_usage': df.memory_usage(deep=True).sum(),
             'null_counts': df.isnull().sum().to_dict(),
@@ -86,20 +73,10 @@ class ExcelService:
         df: pd.DataFrame, 
         code: str
     ) -> Dict[str, Any]:
-        """
-        Safely execute generated pandas code on DataFrame
         
-        Args:
-            df: Input DataFrame
-            code: Python/pandas code to execute
-            
-        Returns:
-            Dict with execution results
-        """
         try:
-            # Create safe execution namespace
             namespace = {
-                'df': df.copy(),  # Work on a copy
+                'df': df.copy(),
                 'pd': pd,
                 'np': np,
                 'datetime': datetime,
@@ -107,7 +84,6 @@ class ExcelService:
                 'result': None
             }
             
-            # Execute the code
             exec(code, namespace)
             
             result = namespace.get('result')
@@ -115,12 +91,11 @@ class ExcelService:
             if result is None:
                 return {
                     'success': False,
-                    'error': 'Code did not produce a result. Ensure you set result = ...',
+                    'error': 'Code did not produce result. Ensure result variable is set.',
                     'result': None,
                     'result_type': None
                 }
             
-            # Process the result based on type
             return self._process_result(result, namespace['df'])
             
         except Exception as e:
@@ -136,17 +111,13 @@ class ExcelService:
         result: Any, 
         modified_df: pd.DataFrame
     ) -> Dict[str, Any]:
-        """Process execution result into a standardized format"""
         
         result_type = type(result).__name__
         
-        # Handle DataFrame result
         if isinstance(result, pd.DataFrame):
-            # Replace NaN/Inf with None for JSON serialization
             result = result.replace([float('inf'), float('-inf')], None)
             result = result.where(pd.notna(result), None)
             
-            # Limit result size
             if len(result) > self.max_result_rows:
                 result = result.head(self.max_result_rows)
                 truncated = True
@@ -163,9 +134,7 @@ class ExcelService:
                 'error': None
             }
         
-        # Handle Series result
         elif isinstance(result, pd.Series):
-            # Replace NaN/Inf with None
             result = result.replace([float('inf'), float('-inf')], None)
             result = result.where(pd.notna(result), None)
             
@@ -177,9 +146,7 @@ class ExcelService:
                 'error': None
             }
         
-        # Handle scalar results (int, float, str)
         elif isinstance(result, (int, float, str, bool)):
-            # Handle NaN/Inf in scalar
             if isinstance(result, float):
                 if pd.isna(result) or result == float('inf') or result == float('-inf'):
                     result = None
@@ -192,7 +159,6 @@ class ExcelService:
                 'error': None
             }
         
-        # Handle dict results
         elif isinstance(result, dict):
             return {
                 'success': True,
@@ -201,7 +167,6 @@ class ExcelService:
                 'error': None
             }
         
-        # Handle list results
         elif isinstance(result, list):
             return {
                 'success': True,
@@ -211,7 +176,6 @@ class ExcelService:
                 'error': None
             }
         
-        # Unknown type - try to convert to string
         else:
             return {
                 'success': True,
@@ -227,17 +191,7 @@ class ExcelService:
         filepath: str,
         sheet_name: str = 'Result'
     ) -> str:
-        """
-        Save DataFrame to Excel file
         
-        Args:
-            df: DataFrame to save
-            filepath: Output file path
-            sheet_name: Sheet name
-            
-        Returns:
-            File path
-        """
         try:
             df.to_excel(filepath, sheet_name=sheet_name, index=False)
             return filepath
@@ -252,19 +206,7 @@ class ExcelService:
         left_on: str = None,
         right_on: str = None
     ) -> pd.DataFrame:
-        """
-        Merge two DataFrames
         
-        Args:
-            df1: First DataFrame
-            df2: Second DataFrame
-            join_type: Type of join (inner, left, right, outer)
-            left_on: Column name in df1
-            right_on: Column name in df2
-            
-        Returns:
-            Merged DataFrame
-        """
         try:
             return pd.merge(
                 df1, 

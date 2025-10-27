@@ -1,14 +1,9 @@
-"""
-Join Service for multi-file operations
-"""
 import pandas as pd
 from typing import Dict, List, Tuple, Optional, Any
 from app.services.excel_service import ExcelService
 
 
 class JoinService:
-    """Service for joining multiple DataFrames"""
-    
     def __init__(self):
         self.excel_service = ExcelService()
     
@@ -17,16 +12,6 @@ class JoinService:
         filepaths: List[str],
         sheet_names: Optional[List[str]] = None
     ) -> Dict[str, Tuple[pd.DataFrame, Dict[str, Any]]]:
-        """
-        Load multiple Excel files
-        
-        Args:
-            filepaths: List of file paths
-            sheet_names: Optional list of sheet names (one per file)
-            
-        Returns:
-            Dict mapping filepath to (DataFrame, metadata)
-        """
         loaded_data = {}
         
         for i, filepath in enumerate(filepaths):
@@ -47,19 +32,6 @@ class JoinService:
         join_columns: Optional[List[str]] = None,
         how: str = 'inner'
     ) -> pd.DataFrame:
-        """
-        Intelligently join two DataFrames
-        
-        Args:
-            df1: First DataFrame
-            df2: Second DataFrame
-            join_columns: Columns to join on (auto-detect if None)
-            how: Join type (inner, left, right, outer)
-            
-        Returns:
-            Merged DataFrame
-        """
-        # Auto-detect join columns if not specified
         if join_columns is None:
             join_columns = self._detect_join_columns(df1, df2)
             if not join_columns:
@@ -67,15 +39,12 @@ class JoinService:
                     "Could not auto-detect join columns. "
                     "Please specify join columns explicitly."
                 )
-        
-        # Validate join columns exist
+
         for col in join_columns:
             if col not in df1.columns:
                 raise ValueError(f"Column '{col}' not found in first dataset")
             if col not in df2.columns:
                 raise ValueError(f"Column '{col}' not found in second dataset")
-        
-        # Perform the join
         try:
             if len(join_columns) == 1:
                 result = pd.merge(
@@ -102,23 +71,10 @@ class JoinService:
         df1: pd.DataFrame, 
         df2: pd.DataFrame
     ) -> List[str]:
-        """
-        Auto-detect potential join columns based on common column names
-        
-        Args:
-            df1: First DataFrame
-            df2: Second DataFrame
-            
-        Returns:
-            List of common column names
-        """
-        # Find columns with same name
         common_cols = list(set(df1.columns) & set(df2.columns))
         
         if not common_cols:
             return []
-        
-        # Prioritize columns that look like IDs or keys
         id_keywords = ['id', 'key', 'code', 'number', 'no']
         priority_cols = [
             col for col in common_cols 
@@ -126,9 +82,9 @@ class JoinService:
         ]
         
         if priority_cols:
-            return priority_cols[:1]  # Return the first ID-like column
+            return priority_cols[:1]
         
-        return common_cols[:1]  # Return the first common column
+        return common_cols[:1] 
     
     def multi_join(
         self,
@@ -136,17 +92,6 @@ class JoinService:
         join_columns: List[str],
         how: str = 'inner'
     ) -> pd.DataFrame:
-        """
-        Join multiple DataFrames sequentially
-        
-        Args:
-            dataframes: List of DataFrames to join
-            join_columns: Columns to join on
-            how: Join type
-            
-        Returns:
-            Final merged DataFrame
-        """
         if len(dataframes) < 2:
             raise ValueError("Need at least 2 DataFrames to join")
         
@@ -163,17 +108,6 @@ class JoinService:
         axis: int = 0,
         ignore_index: bool = True
     ) -> pd.DataFrame:
-        """
-        Concatenate multiple DataFrames vertically or horizontally
-        
-        Args:
-            dataframes: List of DataFrames
-            axis: 0 for vertical (rows), 1 for horizontal (columns)
-            ignore_index: Whether to reset index
-            
-        Returns:
-            Concatenated DataFrame
-        """
         try:
             return pd.concat(dataframes, axis=axis, ignore_index=ignore_index)
         except Exception as e:
@@ -184,16 +118,6 @@ class JoinService:
         df1: pd.DataFrame,
         df2: pd.DataFrame
     ) -> Dict[str, Any]:
-        """
-        Analyze two DataFrames for join potential
-        
-        Args:
-            df1: First DataFrame
-            df2: Second DataFrame
-            
-        Returns:
-            Analysis results
-        """
         common_cols = list(set(df1.columns) & set(df2.columns))
         
         analysis = {
@@ -205,7 +129,6 @@ class JoinService:
             'df2_columns': df2.columns.tolist()
         }
         
-        # Analyze uniqueness of common columns
         if common_cols:
             uniqueness = {}
             for col in common_cols:

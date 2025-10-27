@@ -1,6 +1,3 @@
-"""
-Export Service for saving query results
-"""
 import pandas as pd
 from typing import Dict, Any, Optional
 from pathlib import Path
@@ -9,8 +6,6 @@ import io
 
 
 class ExportService:
-    """Service for exporting DataFrames to Excel"""
-    
     def __init__(self):
         self.output_dir = Path("data/output")
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -22,23 +17,10 @@ class ExportService:
         sheet_name: str = 'Result',
         include_index: bool = False
     ) -> str:
-        """
-        Export DataFrame to Excel file
-        
-        Args:
-            df: DataFrame to export
-            filename: Output filename (auto-generated if None)
-            sheet_name: Name of the sheet
-            include_index: Whether to include index
-            
-        Returns:
-            Output file path
-        """
         if filename is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"query_result_{timestamp}.xlsx"
-        
-        # Ensure .xlsx extension
+    
         if not filename.endswith('.xlsx'):
             filename += '.xlsx'
         
@@ -59,17 +41,6 @@ class ExportService:
         filename: str,
         include_index: bool = False
     ) -> str:
-        """
-        Export multiple DataFrames as different sheets
-        
-        Args:
-            dataframes: Dict mapping sheet names to DataFrames
-            filename: Output filename
-            include_index: Whether to include index
-            
-        Returns:
-            Output file path
-        """
         if not filename.endswith('.xlsx'):
             filename += '.xlsx'
         
@@ -94,18 +65,6 @@ class ExportService:
         sheet_name: str = 'Result',
         format_config: Optional[Dict[str, Any]] = None
     ) -> str:
-        """
-        Export DataFrame with custom formatting
-        
-        Args:
-            df: DataFrame to export
-            filename: Output filename
-            sheet_name: Sheet name
-            format_config: Formatting configuration
-            
-        Returns:
-            Output file path
-        """
         if not filename.endswith('.xlsx'):
             filename += '.xlsx'
         
@@ -116,19 +75,14 @@ class ExportService:
             
             with pd.ExcelWriter(filepath, engine='openpyxl') as writer:
                 df.to_excel(writer, sheet_name=sheet_name, index=False)
-                
-                # Get the worksheet
+
                 worksheet = writer.sheets[sheet_name]
-                
-                # Apply header formatting
                 header_font = Font(bold=True, color="FFFFFF")
                 header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
                 
                 for cell in worksheet[1]:
                     cell.font = header_font
                     cell.fill = header_fill
-                
-                # Auto-adjust column widths
                 for column in worksheet.columns:
                     max_length = 0
                     column_letter = column[0].column_letter
@@ -152,17 +106,6 @@ class ExportService:
         filename: Optional[str] = None,
         include_index: bool = False
     ) -> str:
-        """
-        Export DataFrame to CSV file
-        
-        Args:
-            df: DataFrame to export
-            filename: Output filename
-            include_index: Whether to include index
-            
-        Returns:
-            Output file path
-        """
         if filename is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             filename = f"query_result_{timestamp}.csv"
@@ -182,15 +125,6 @@ class ExportService:
         self,
         df: pd.DataFrame
     ) -> Dict[str, Any]:
-        """
-        Get summary of data being exported
-        
-        Args:
-            df: DataFrame to analyze
-            
-        Returns:
-            Summary statistics
-        """
         return {
             'rows': len(df),
             'columns': len(df.columns),
@@ -201,30 +135,12 @@ class ExportService:
         }
     
     def _sanitize_sheet_name(self, name: str) -> str:
-        """
-        Sanitize sheet name for Excel compatibility
-        
-        Args:
-            name: Original sheet name
-            
-        Returns:
-            Sanitized sheet name
-        """
-        # Remove invalid characters
         invalid_chars = ['[', ']', '*', '?', ':', '/', '\\']
         for char in invalid_chars:
             name = name.replace(char, '_')
-        
-        # Limit to 31 characters (Excel limit)
         return name[:31]
     
     def list_exports(self) -> list:
-        """
-        List all exported files
-        
-        Returns:
-            List of export file info
-        """
         exports = []
         
         for filepath in self.output_dir.glob('*.xlsx'):

@@ -1,6 +1,3 @@
-"""
-Enhanced API routes with comprehensive error handling
-"""
 from fastapi import APIRouter, UploadFile, File, HTTPException, Form, status
 from fastapi.responses import FileResponse, JSONResponse
 from typing import Optional, List
@@ -17,7 +14,6 @@ import traceback
 
 router = APIRouter()
 
-# Initialize services
 llm_service = LLMService()
 excel_service = ExcelService()
 join_service = JoinService()
@@ -25,13 +21,11 @@ export_service = ExportService()
 query_history = QueryHistory()
 
 
-# Custom exception handler
 def handle_error(error: Exception, operation: str) -> JSONResponse:
-    """Centralized error handling"""
     error_message = str(error)
     error_type = type(error).__name__
     
-    print(f"❌ Error in {operation}: {error_type} - {error_message}")
+    print(f"Error in {operation}: {error_type} - {error_message}")
     traceback.print_exc()
     
     return JSONResponse(
@@ -51,9 +45,7 @@ async def generate_sample_data(
     rows: int = 1000,
     include_unstructured: bool = True
 ):
-    """Generate sample Excel data for testing"""
     try:
-        # Validate inputs
         if rows < 1 or rows > 100000:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -89,9 +81,7 @@ async def generate_sample_data(
 
 @router.post("/upload")
 async def upload_excel(file: UploadFile = File(...)):
-    """Upload an Excel file for processing"""
     try:
-        # Validate file type
         if not file.filename:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -101,14 +91,12 @@ async def upload_excel(file: UploadFile = File(...)):
         if not file.filename.endswith(('.xlsx', '.xls', '.csv')):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, 
-                detail="Invalid file format. Only .xlsx, .xls, and .csv files are supported"
+                detail="Invalid file format. Only .xlsx, .xls, and .csv files supported"
             )
         
-        # Create directory if not exists
         Path("data/input").mkdir(parents=True, exist_ok=True)
         file_path = f"data/input/{file.filename}"
         
-        # Save file
         with open(file_path, "wb") as buffer:
             content = await file.read()
             if not content:
@@ -118,17 +106,15 @@ async def upload_excel(file: UploadFile = File(...)):
                 )
             buffer.write(content)
         
-        # Verify file can be read
         sheets = excel_service.list_sheets(file_path)
         file_size = os.path.getsize(file_path)
         
-        # Check file size (50MB limit)
-        max_size = 50 * 1024 * 1024  # 50MB
+        max_size = 50 * 1024 * 1024
         if file_size > max_size:
             os.remove(file_path)
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail=f"File too large. Maximum size is 50MB, uploaded file is {file_size / (1024*1024):.2f}MB"
+                detail=f"File too large. Maximum 50MB, uploaded {file_size / (1024*1024):.2f}MB"
             )
         
         return {
@@ -153,11 +139,9 @@ async def query_excel(
     query: str = Form(...),
     sheet_name: Optional[str] = Form(None)
 ):
-    """Execute a natural language query on Excel data using AI"""
     start_time = time.time()
     
     try:
-        # Validate inputs
         if not filepath or not filepath.strip():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -176,7 +160,6 @@ async def query_excel(
                 detail=f"File not found: {filepath}"
             )
         
-        # Read Excel file
         try:
             df, df_info = excel_service.read_excel(filepath, sheet_name)
         except Exception as e:
@@ -188,10 +171,9 @@ async def query_excel(
         if df.empty:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="DataFrame is empty. Cannot process empty data."
+                detail="DataFrame is empty"
             )
         
-        # Generate code using LLM
         llm_response = llm_service.generate_pandas_code(
             query=query,
             df_info=df_info,
@@ -199,7 +181,7 @@ async def query_excel(
         )
         
         if not llm_response['success']:
-            error_msg = llm_response.get('error', 'Unknown LLM error')
+            error_msg = llm_response.get('error', 'Unknown error')
             query_history.add_query(
                 query=query,
                 filepath=filepath,
@@ -210,10 +192,9 @@ async def query_excel(
             )
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
-                detail=f"AI code generation failed: {error_msg}"
+                detail=f"Code generation failed: {error_msg}"
             )
         
-        # Validate generated code
         try:
             validated_code = llm_service.validate_and_enhance_code(llm_response['code'])
         except ValueError as e:
@@ -230,7 +211,6 @@ async def query_excel(
                 detail=f"Code validation failed: {str(e)}"
             )
         
-        # Execute the validated code
         execution_result = excel_service.execute_query_code(df, validated_code)
         
         execution_time = time.time() - start_time
@@ -248,10 +228,9 @@ async def query_excel(
             )
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Code execution failed: {error_msg}"
+                detail=f"Execution failed: {error_msg}"
             )
         
-        # Add to history
         query_history.add_query(
             query=query,
             filepath=filepath,
@@ -293,9 +272,7 @@ async def join_files(
     sheet1: Optional[str] = Form(None),
     sheet2: Optional[str] = Form(None)
 ):
-    """Join two Excel files"""
     try:
-        # Validate inputs
         if not os.path.exists(file1):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -310,19 +287,16 @@ async def join_files(
         if how not in ['inner', 'left', 'right', 'outer']:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid join type: {how}. Must be 'inner', 'left', 'right', or 'outer'"
+                detail=f"Invalid join type: {how}"
             )
         
-        # Load files
         df1, info1 = excel_service.read_excel(file1, sheet1)
         df2, info2 = excel_service.read_excel(file2, sheet2)
         
-        # Parse join columns
         join_cols = None
         if join_columns:
             join_cols = [col.strip() for col in join_columns.split(',')]
         
-        # Perform join
         result_df = join_service.smart_join(df1, df2, join_cols, how)
         
         return {
@@ -353,23 +327,20 @@ async def export_result(
     sheet_name: Optional[str] = Form(None),
     formatted: bool = Form(False)
 ):
-    """Execute query and export result to new Excel file"""
     try:
-        # Validate inputs
         if not os.path.exists(filepath):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"File not found: {filepath}"
             )
         
-        # Execute query
         df, df_info = excel_service.read_excel(filepath, sheet_name)
         
         llm_response = llm_service.generate_pandas_code(query, df_info, "df")
         if not llm_response['success']:
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"AI code generation failed: {llm_response['error']}"
+                detail=f"Code generation failed: {llm_response['error']}"
             )
         
         code = llm_service.validate_and_enhance_code(llm_response['code'])
@@ -381,17 +352,15 @@ async def export_result(
                 detail=f"Query execution failed: {execution_result['error']}"
             )
         
-        # Convert result to DataFrame
         if execution_result['result_type'] == 'dataframe':
             import pandas as pd
             result_df = pd.DataFrame(execution_result['result'])
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, 
-                detail="Query result is not a DataFrame. Only DataFrame results can be exported."
+                detail="Query result is not a DataFrame"
             )
         
-        # Export
         if formatted:
             output_path = export_service.export_with_formatting(
                 result_df, 
@@ -423,7 +392,6 @@ async def export_result(
 
 @router.get("/download/{filename}")
 async def download_file(filename: str):
-    """Download an exported file"""
     try:
         file_path = Path("data/output") / filename
         
@@ -449,7 +417,6 @@ async def analyze_excel(
     filepath: str = Form(...),
     sheet_name: Optional[str] = Form(None)
 ):
-    """Get detailed analysis of an Excel file"""
     try:
         if not os.path.exists(filepath):
             raise HTTPException(
@@ -481,7 +448,6 @@ async def analyze_excel(
 
 @router.get("/sheets/{filepath:path}")
 async def list_sheets(filepath: str):
-    """List all sheets in an Excel file"""
     try:
         if not os.path.exists(filepath):
             raise HTTPException(
@@ -508,7 +474,6 @@ async def get_query_history(
     limit: int = 10,
     success_only: bool = False
 ):
-    """Get recent query history"""
     try:
         if limit < 1 or limit > 1000:
             raise HTTPException(
@@ -530,7 +495,6 @@ async def get_query_history(
 
 @router.get("/history/stats")
 async def get_history_statistics():
-    """Get query history statistics"""
     try:
         stats = query_history.get_statistics()
         return {
@@ -543,15 +507,12 @@ async def get_history_statistics():
 
 @router.get("/health")
 async def health_check():
-    """Check if services are operational"""
     try:
-        # Check LLM service
         llm_status = "operational"
         try:
-            if llm_service.use_ollama:
-                import requests
-                response = requests.get(f"{llm_service.ollama_url}/api/tags", timeout=5)
-                llm_status = "operational" if response.status_code == 200 else "error"
+            import requests
+            response = requests.get(f"{llm_service.ollama_url}/api/tags", timeout=5)
+            llm_status = "operational" if response.status_code == 200 else "error"
         except:
             llm_status = "error"
         
@@ -565,7 +526,7 @@ async def health_check():
                 "export_service": "operational",
                 "query_history": "operational"
             },
-            "version": "4.0.0 - Production Ready"
+            "version": "1.0.0"
         }
     except Exception as e:
         return {

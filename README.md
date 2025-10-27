@@ -1,296 +1,359 @@
 # Excel AI Engine
 
-AI-powered Excel data analysis and manipulation engine using Large Language Models.
+An intelligent data analysis platform that enables natural language querying of Excel datasets using Large Language Models. The system automatically generates and executes pandas code to perform complex data operations on both structured and unstructured data.
 
-## 🚀 Features
+## Core Features
 
-- **🌐 Interactive Web Interface** - Beautiful, modern UI for non-technical users
-- **🤖 Natural Language Queries** - Ask questions about your data in plain English
-- **📊 Real-time Results** - Instant query execution with visual feedback
-- **🎨 Data Visualization** - Tables, charts, and statistics
-- **💾 Export Functionality** - Download results as formatted Excel files
-- **📜 Query History** - Track and replay previous queries
-- **🔗 Multi-File Operations** - Join and merge multiple Excel files
-- **⚡ Batch Processing** - Execute multiple queries in sequence
-- **🎯 Smart Suggestions** - AI-powered query recommendations
-- **📱 Responsive Design** - Works on desktop, tablet, and mobile
-- **🚀 Production Ready** - Comprehensive error handling and validation
+### Natural Language Interface
+Query your Excel data using plain English. The system interprets your intent and generates appropriate pandas code for execution.
 
-## 📋 Prerequisites
+### Comprehensive Data Operations
+- Mathematical computations across columns
+- Statistical aggregations with grouping
+- Advanced filtering with multiple conditions
+- Date manipulation and temporal analysis
+- Pivot table creation and reversal
+- Multi-file joining capabilities
+- Text analysis and sentiment classification
 
-- Python 3.11+
+### Production-Ready Architecture
+- RESTful API with FastAPI
+- Robust error handling and validation
+- Query history tracking
+- Result export with formatting
+- Batch query processing
+- Docker containerization
+
+## Prerequisites
+
+- Python 3.11 or higher
 - Docker Desktop (optional)
-- OpenAI API Key
+- Ollama with llama3.2 model installed
 
-## 🛠️ Installation
+## Ollama Setup
 
-### Local Setup
+Install Ollama and pull the required model:
 
-1. **Clone the repository**
 ```bash
-git clone https://github.com/YOUR_USERNAME/excel-ai-engine.git
+# Install Ollama from https://ollama.ai
+
+# Pull llama3.2 model
+ollama pull llama3.2
+
+# Start Ollama server
+ollama serve
+```
+
+## Installation
+
+### Local Development
+
+```bash
+git clone <repository-url>
 cd excel-ai-engine
-```
 
-2. **Create virtual environment**
-```bash
 python3 -m venv venv
-source venv/bin/activate  # On Mac/Linux
-```
+source venv/bin/activate
 
-3. **Install dependencies**
-```bash
 pip install -r requirements.txt
-```
 
-4. **Configure environment**
-```bash
 cp .env.example .env
-# Edit .env and add your OPENAI_API_KEY
 ```
 
-5. **Run the application**
+Edit `.env` and configure Ollama settings:
+```
+OLLAMA_URL=http://localhost:11434
+OLLAMA_MODEL=llama3.2
+```
+
+Start the server:
 ```bash
 python -m app.main
 ```
 
-The API will be available at: http://localhost:8000
-- Swagger UI: http://localhost:8000/docs
-- ReDoc: http://localhost:8000/redoc
+Access the API at `http://localhost:8000`
 
-### Docker Setup
+### Docker Deployment
 
-1. **Build and run with Docker Compose**
+Ensure Ollama is running on your host machine, then:
+
 ```bash
 docker-compose up --build
 ```
 
-2. **Access the API**
-- API: http://localhost:8000
-- Docs: http://localhost:8000/docs
+The service will be available at `http://localhost:8000`
 
-## 📊 Generate Sample Data
+## API Documentation
 
-Generate synthetic data for testing:
+Interactive API documentation is available at:
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`
+
+## Usage Examples
+
+### Generate Test Data
 
 ```bash
-# Using Python directly
 python -m app.utils.data_generator
-
-# Using the API
-curl -X POST "http://localhost:8000/api/v1/generate-sample-data?rows=1000&include_unstructured=true"
 ```
 
-This creates a file at `data/output/sample_data.xlsx` with:
-- **Structured_Data** sheet: 1000 rows × 10 columns (numerical and categorical data)
-- **Unstructured_Data** sheet: 1000 rows × 5 columns (text data)
+This creates a sample Excel file with 1000 rows of structured data including employee information, dates, and performance metrics.
 
-## 🔌 API Endpoints
-
-### Core Operations
-- `POST /api/v1/generate-sample-data` - Generate synthetic test data
-- `POST /api/v1/upload` - Upload single Excel file
-- `POST /api/v1/upload-multiple` - Upload multiple files
-- `POST /api/v1/query` - Execute natural language query
-- `POST /api/v1/analyze` - Get detailed data analysis
-- `GET /api/v1/sheets/{filepath}` - List sheets in file
-
-### Join Operations (New in Day 3)
-- `POST /api/v1/join` - Join two Excel files
-- `POST /api/v1/query-with-join` - Join and query in one operation
-- `POST /api/v1/analyze-join` - Analyze join potential
-
-### Export Operations (New in Day 3)
-- `POST /api/v1/export` - Execute query and export result
-- `GET /api/v1/download/{filename}` - Download exported file
-- `GET /api/v1/exports` - List all exported files
-
-### Batch Processing (New in Day 3)
-- `POST /api/v1/batch-query` - Execute multiple queries
-
-### Query History (New in Day 3)
-- `GET /api/v1/history` - Get recent queries
-- `GET /api/v1/history/{id}` - Get specific query
-- `GET /api/v1/history/search/{term}` - Search history
-- `GET /api/v1/history/stats` - Get statistics
-- `DELETE /api/v1/history` - Clear history
-
-### System
-- `GET /api/v1/operations` - List supported operations
-- `GET /api/v1/health` - Health check
-
-## 📖 Usage Examples
-
-### Example 1: Simple Query
+### Basic Query
 
 ```bash
-# Generate data
-curl -X POST "http://localhost:8000/api/v1/generate-sample-data"
-
-# Query it
 curl -X POST "http://localhost:8000/api/v1/query" \
   -F "filepath=data/output/sample_data.xlsx" \
   -F "query=Calculate average salary by department"
 ```
 
-### Example 2: Join Multiple Files
+### File Upload
 
 ```bash
-# Upload files
-curl -X POST "http://localhost:8000/api/v1/upload" -F "file=@employees.xlsx"
-curl -X POST "http://localhost:8000/api/v1/upload" -F "file=@departments.xlsx"
+curl -X POST "http://localhost:8000/api/v1/upload" \
+  -F "file=@your_file.xlsx"
+```
 
-# Join and query
-curl -X POST "http://localhost:8000/api/v1/query-with-join" \
+### Multi-File Join
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/join" \
   -F "file1=data/input/employees.xlsx" \
   -F "file2=data/input/departments.xlsx" \
-  -F "query=Show average salary by department with budget information" \
-  -F "join_columns=department"
+  -F "join_columns=department_id" \
+  -F "how=inner"
 ```
 
-### Example 3: Batch Processing
-
-```bash
-curl -X POST "http://localhost:8000/api/v1/batch-query" \
-  -F "filepath=data/output/sample_data.xlsx" \
-  -F 'queries=["Filter salary > 80000", "Group by department", "Sort by average descending"]' \
-  -F "chain=true"
-```
-
-### Example 4: Export Results
+### Export Results
 
 ```bash
 curl -X POST "http://localhost:8000/api/v1/export" \
   -F "filepath=data/output/sample_data.xlsx" \
   -F "query=Show top 10 highest paid employees" \
-  -F "output_filename=high_earners.xlsx" \
+  -F "output_filename=top_earners.xlsx" \
   -F "formatted=true"
-
-# Download
-open http://localhost:8000/api/v1/download/high_earners.xlsx
 ```
 
-### Example 5: Query History
+## Supported Query Types
 
-```bash
-# View recent queries
-curl "http://localhost:8000/api/v1/history?limit=10"
+### Mathematical Operations
+Create calculated columns by combining existing data with arithmetic operations.
 
-# Get statistics
-curl "http://localhost:8000/api/v1/history/stats"
+Example: "Add salary and bonus to create total_compensation column"
 
-# Search history
-curl "http://localhost:8000/api/v1/history/search/salary"
-```
+### Aggregation Analysis
+Perform statistical computations with optional grouping.
 
-## 🧪 Running Tests
+Example: "Show sum, average, minimum and maximum salary by department"
 
-```bash
-# Run all tests
-pytest
+### Data Filtering
+Extract subsets based on single or multiple conditions.
 
-# Run with coverage
-pytest --cov=app --cov-report=html
+Example: "Find employees with age over 40 and salary above 80000"
 
-# Run specific test file
-pytest app/tests/test_api.py -v
-```
+### Temporal Operations
+Extract date components or calculate time differences.
 
-## 📁 Project Structure
+Example: "Calculate years of service from join_date to today"
+
+### Pivot Tables
+Transform data between wide and long formats.
+
+Example: "Create pivot with department as rows and average salary by city"
+
+### Data Joining
+Combine multiple datasets based on common keys.
+
+Example: "Join employee data with sales data on employee_id"
+
+### Text Analysis
+Classify or analyze unstructured text content.
+
+Example: "Classify customer feedback as positive, negative, or neutral"
+
+## Project Structure
 
 ```
 excel-ai-engine/
 ├── app/
-│   ├── __init__.py
-│   ├── main.py                 # FastAPI application
 │   ├── api/
-│   │   ├── __init__.py
 │   │   └── routes.py           # API endpoints
 │   ├── core/
-│   │   ├── __init__.py
-│   │   └── config.py           # Configuration settings
+│   │   └── config.py           # Configuration
 │   ├── services/
-│   │   ├── __init__.py
-│   │   ├── excel_service.py    # Excel processing logic
-│   │   └── llm_service.py      # LLM integration
+│   │   ├── excel_service.py    # Excel processing
+│   │   ├── llm_service.py      # LLM integration
+│   │   ├── join_service.py     # Multi-file operations
+│   │   ├── export_service.py   # Result export
+│   │   └── query_history.py    # History tracking
 │   ├── utils/
-│   │   ├── __init__.py
-│   │   └── data_generator.py   # Synthetic data generation
-│   └── tests/
-│       ├── __init__.py
-│       └── test_api.py         # API tests
+│   │   └── data_generator.py   # Test data creation
+│   └── main.py                 # Application entry
 ├── data/
-│   ├── input/                  # Uploaded Excel files
-│   └── output/                 # Generated/processed files
-├── docs/                       # Additional documentation
-├── .env                        # Environment variables
-├── .gitignore
+│   ├── input/                  # Upload directory
+│   └── output/                 # Results directory
 ├── Dockerfile
 ├── docker-compose.yml
 ├── requirements.txt
 └── README.md
 ```
 
-## 🎯 Supported Operations
+## API Endpoints
 
-### Basic Math Operations
-- Addition, subtraction, multiplication, division
-- Example: "Add salary and bonus columns"
+### Core Operations
+- `POST /api/v1/generate-sample-data` - Generate synthetic test data
+- `POST /api/v1/upload` - Upload Excel file
+- `POST /api/v1/query` - Execute natural language query
+- `POST /api/v1/analyze` - Get detailed file analysis
+- `GET /api/v1/sheets/{filepath}` - List available sheets
 
-### Aggregations
-- Sum, average, min, max, count, median
-- Example: "Calculate average salary by department"
+### Advanced Operations
+- `POST /api/v1/join` - Join two files
+- `POST /api/v1/export` - Execute query and export
+- `GET /api/v1/download/{filename}` - Download exported file
 
-### Filtering
-- Conditional filtering on any column
-- Example: "Show rows where age > 30 and department is Engineering"
+### History Management
+- `GET /api/v1/history` - View query history
+- `GET /api/v1/history/stats` - Get usage statistics
+- `GET /api/v1/history/search/{term}` - Search past queries
 
-### Date Operations
-- Extract year, month, day
-- Calculate date differences
-- Example: "Extract year from join_date"
+### System
+- `GET /api/v1/health` - Service health check
 
-### Joining
-- Inner, left, right, outer joins
-- Example: "Join with sales_data on customer_id"
+## Testing
 
-### Pivot & Unpivot
-- Create pivot tables
-- Reverse pivot operations
-- Example: "Create pivot table with department as rows and average salary"
+Run the complete test suite:
 
-## 🔧 Development
+```bash
+chmod +x testing.sh
+./testing.sh
+```
 
-### Day 1 Progress
-- ✅ Project structure setup
-- ✅ Basic API endpoints
-- ✅ Data generation utility
-- ✅ Docker configuration
-- ✅ Documentation
+The script validates all supported operations including math, aggregations, filtering, dates, pivots, joins, and text analysis.
 
-### Day 3 Progress ✅
-- ✅ Join service for multi-file operations
-- ✅ Export service with formatted Excel output
-- ✅ Query history with search and statistics
-- ✅ Batch processing (independent and chained)
-- ✅ File download endpoints
-- ✅ Enhanced error handling
-- ✅ Comprehensive testing guide
+For unit tests:
 
-### Optional Enhancements (Day 4+)
-- 🔄 Web UI for non-technical users
-- 🔄 Data visualization/charts
-- 🔄 Advanced caching and performance optimization
-- 🔄 Unstructured data analysis (sentiment, summarization)
+```bash
+pytest
+pytest --cov=app --cov-report=html
+```
 
-## 🤝 Contributing
+## Configuration
 
-This is a recruitment project. Code commits will be pushed daily.
+Environment variables can be set in `.env`:
 
-## 📝 License
+```
+API_HOST=0.0.0.0
+API_PORT=8000
+DEBUG=True
 
-This project is for recruitment evaluation purposes.
+OLLAMA_URL=http://localhost:11434
+OLLAMA_MODEL=llama3.2
 
-## 📧 Contact
+MAX_FILE_SIZE_MB=50
+ALLOWED_EXTENSIONS=.xlsx,.xls
+```
 
-For questions or clarifications, contact the recruitment team.
+## LLM Integration
+
+The system uses Ollama for local LLM inference, providing:
+- Complete data privacy (no external API calls)
+- No usage costs
+- Fast inference on local hardware
+- Full control over model selection
+
+### Supported Models
+While the default is llama3.2, you can use other Ollama models by updating `OLLAMA_MODEL` in your `.env` file. Tested with:
+- llama3.2 (recommended)
+- llama3.1
+- mistral
+- codellama
+
+## Security Considerations
+
+The system includes multiple safety measures:
+- Code validation before execution
+- Restricted import statements
+- No file system access from generated code
+- No network operations from generated code
+- Input sanitization and validation
+- File size limits
+
+## Performance
+
+- Maximum file size: 50MB
+- Result truncation: 10,000 rows
+- Query timeout: 120 seconds
+- Concurrent request handling via async operations
+
+## Error Handling
+
+The API provides detailed error responses with:
+- HTTP status codes
+- Error type classification
+- Descriptive error messages
+- Timestamps for debugging
+
+## Troubleshooting
+
+### Ollama Connection Issues
+```bash
+# Check if Ollama is running
+curl http://localhost:11434/api/tags
+
+# Restart Ollama
+ollama serve
+```
+
+### Docker Networking
+If Docker container cannot connect to Ollama on host:
+- Use `host.docker.internal:11434` (macOS/Windows)
+- Use `172.17.0.1:11434` (Linux)
+- Or add `network_mode: "host"` to docker-compose.yml
+
+### Model Not Found
+```bash
+# Verify model is installed
+ollama list
+
+# Pull model if missing
+ollama pull llama3.2
+```
+
+## Architecture
+
+The system follows a layered architecture:
+
+1. **API Layer** (routes.py) - Handles HTTP requests and responses
+2. **Service Layer** - Business logic for different operations
+   - LLM Service - Code generation and validation
+   - Excel Service - File reading and code execution
+   - Join Service - Multi-file operations
+   - Export Service - Result formatting and export
+3. **Utility Layer** - Helper functions and data generation
+
+## How It Works
+
+1. User submits natural language query via API
+2. System reads Excel file and extracts metadata
+3. LLM generates pandas code based on query and data structure
+4. Code is validated for security and correctness
+5. Code executes in isolated namespace
+6. Results are formatted and returned to user
+7. Query and result are logged to history
+
+## Contributing
+
+Contributions are welcome. Please ensure:
+- Code follows existing style patterns
+- All tests pass
+- New features include appropriate tests
+- Documentation is updated
+
+## License
+
+MIT License
+
+## Support
+
+For issues or questions, please open an issue on the repository.
