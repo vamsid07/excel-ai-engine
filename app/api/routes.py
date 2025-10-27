@@ -426,6 +426,14 @@ async def analyze_excel(
         
         df, df_info = excel_service.read_excel(filepath, sheet_name)
         
+        # Convert statistics to a more JSON-friendly format
+        stats_dict = {}
+        try:
+            stats_df = df.describe()
+            stats_dict = stats_df.to_dict()
+        except:
+            stats_dict = {"error": "Statistics not available"}
+        
         return {
             "status": "success",
             "filepath": filepath,
@@ -435,16 +443,15 @@ async def analyze_excel(
                 "data_types": dict(zip(df_info['columns'], df_info['dtypes'])),
                 "null_counts": df_info['null_counts'],
                 "has_duplicates": df_info['has_duplicates'],
-                "memory_usage_bytes": df_info['memory_usage'],
-                "sample_data": df_info['sample_data'],
-                "statistics": df_info['statistics']
+                "memory_usage_bytes": int(df_info['memory_usage']),
+                "sample_data": df.head(5).to_dict(orient='records'),
+                "statistics": stats_dict
             }
         }
     except HTTPException:
         raise
     except Exception as e:
         return handle_error(e, "analyze_excel")
-
 
 @router.get("/sheets/{filepath:path}")
 async def list_sheets(filepath: str):

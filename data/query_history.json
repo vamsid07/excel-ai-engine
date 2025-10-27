@@ -1,0 +1,692 @@
+[
+  {
+    "id": "551ceb4e-39c3-4b2e-a106-d4572094a27f",
+    "timestamp": "2025-10-27T08:03:05.209829",
+    "query": "Add a new column called total_compensation which is salary plus projects_completed times 1000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.022,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "8fa61736-12e3-4ae3-b004-d2ebb9961f02",
+    "timestamp": "2025-10-27T08:03:05.244666",
+    "query": "Create a column performance_bonus as performance_score multiplied by 1000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.018,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "76a5abfd-0dd6-4b04-9a03-72fcd48a6ae8",
+    "timestamp": "2025-10-27T08:03:05.275366",
+    "query": "Calculate monthly salary by dividing salary by 12",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.014,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "03c7b98d-98d4-4130-a291-89a32e7758fc",
+    "timestamp": "2025-10-27T08:03:05.305515",
+    "query": "Calculate average salary by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.015,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "2e35fec7-8ee5-4cc9-8fdc-94c4ed54f1b0",
+    "timestamp": "2025-10-27T08:03:05.334815",
+    "query": "Show sum, average, minimum, and maximum salary by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.014,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "3adaa5b9-bd9f-42d5-b6f3-887c5004b4e0",
+    "timestamp": "2025-10-27T08:03:05.363486",
+    "query": "Count number of employees in each city",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.014,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "9d1653bc-2199-4466-8a2a-7848c9ebaa4e",
+    "timestamp": "2025-10-27T08:03:05.409655",
+    "query": "Calculate standard deviation of salary by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.032,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "487ea9df-af2f-468c-9f95-971d7d85918f",
+    "timestamp": "2025-10-27T08:03:05.437793",
+    "query": "Show employees with salary greater than 100000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.013,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "5aa24c2f-d964-4874-8a39-15e4c8e786eb",
+    "timestamp": "2025-10-27T08:03:05.465397",
+    "query": "Filter employees with age greater than 40 AND salary greater than 80000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.013,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "2b9a2a04-896b-4960-ab2a-5a8589821188",
+    "timestamp": "2025-10-27T08:03:05.493528",
+    "query": "Show employees in Engineering department OR with salary above 120000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.014,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "72d2302c-8413-486b-be9b-ee1baaabaf07",
+    "timestamp": "2025-10-27T08:03:05.522831",
+    "query": "Find all employees whose city name contains New",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.013,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "55b2b7b8-315d-430d-bf2a-3ddbda085d72",
+    "timestamp": "2025-10-27T08:03:05.554586",
+    "query": "Extract the year from join_date column and create a new column called join_year",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.015,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "6617cbca-6f05-4daa-a0fc-b8eea76f6ec7",
+    "timestamp": "2025-10-27T08:03:05.583467",
+    "query": "Extract month and day from join_date",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.014,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "25d93e29-2ccb-4e7d-9691-fbdf257e981f",
+    "timestamp": "2025-10-27T08:03:05.612523",
+    "query": "Calculate years of service from join_date to today",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.013,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "5fb48ca9-4cea-49a0-a544-e6b8601ab2bc",
+    "timestamp": "2025-10-27T08:03:05.640550",
+    "query": "Show employees who joined after 2020",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.014,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "44e7224e-cb69-4bc3-a52b-53ec27d69bc2",
+    "timestamp": "2025-10-27T08:03:05.668653",
+    "query": "Create a pivot table with department as rows and average salary",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.014,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "b759df5a-51f5-4cba-92d3-470c486ee4bb",
+    "timestamp": "2025-10-27T08:03:05.696548",
+    "query": "Create pivot table with department as rows, city as columns, and average salary as values",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.014,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "b540ce35-6a78-48b1-bba7-efd62f6b2c9f",
+    "timestamp": "2025-10-27T08:03:05.726676",
+    "query": "Pivot table showing total projects_completed by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.015,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "b7849f31-bfbf-4ec1-a794-50e48a564264",
+    "timestamp": "2025-10-27T08:03:05.755381",
+    "query": "Unpivot the data keeping id and name as identifiers and converting salary, age, projects_completed into separate rows",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.014,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "03eb3df5-5605-4611-b2a0-48e553c219dc",
+    "timestamp": "2025-10-27T08:03:05.842447",
+    "query": "Show first 5 rows to understand the structure",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.012,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "f6057e91-4f66-4227-b44a-dd610f9571b4",
+    "timestamp": "2025-10-27T08:03:05.929926",
+    "query": "For employees with salary above 70000, calculate average performance_score by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.011,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "ef5da463-a70b-4373-acbc-26df98c74a89",
+    "timestamp": "2025-10-27T08:03:05.956471",
+    "query": "Show top 10 highest paid employees sorted by salary descending",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.012,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "49a5e8b0-14f5-46fa-bd87-75bd9bd8fe7c",
+    "timestamp": "2025-10-27T08:03:05.983670",
+    "query": "Rank employees by salary within each department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.013,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "e84ba7d8-c364-43a1-ade1-51fde934db88",
+    "timestamp": "2025-10-27T08:03:06.036463",
+    "query": "Calculate average of nonexistent_column",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 0.012,
+    "generated_code": null,
+    "error": "LLM error: Cannot connect to Ollama. Make sure Ollama is running with 'ollama serve'",
+    "result_shape": null
+  },
+  {
+    "id": "44aec436-eb29-45b6-bfea-ee49b99be078",
+    "timestamp": "2025-10-27T08:06:05.189956",
+    "query": "Add a new column called total_compensation which is salary plus projects_completed times 1000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 8.766,
+    "generated_code": "df['total_compensation'] = df['salary'] + (df['projects_completed'] * 1000)\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      11
+    ]
+  },
+  {
+    "id": "00c92692-eb7a-431e-a9f4-eacb58919441",
+    "timestamp": "2025-10-27T08:06:09.092114",
+    "query": "Create a column performance_bonus as performance_score multiplied by 1000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.831,
+    "generated_code": "df['performance_bonus'] = df['performance_score'] * 1000\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      11
+    ]
+  },
+  {
+    "id": "e23d92dd-4aec-4e8b-a535-a61d15fbd497",
+    "timestamp": "2025-10-27T08:06:16.207675",
+    "query": "Calculate monthly salary by dividing salary by 12",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 7.068,
+    "generated_code": "result = df['salary'] / 12\nresult = result.reset_index()\nresult = result.drop('id', axis=1)\nresult = result.rename(columns={'name': 'name', 'email': 'email', 'department': 'department', 'join_date': 'join_date', 'performance_score': 'performance_score', 'projects_completed': 'projects_completed', 'city': 'city'})\nresult = result[['salary', 'name', 'email', 'age', 'department', 'join_date', 'performance_score', 'projects_completed', 'city', 'monthly_salary']]\n",
+    "error": "Execution error: \"['id'] not found in axis\"\nTraceback (most recent call last):\n  File \"/app/app/services/excel_service.py\", line 87, in execute_query_code\n    exec(code, namespace)\n  File \"<string>\", line 3, in <module>\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/frame.py\", line 5568, in drop\n    return super().drop(\n           ^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/generic.py\", line 4782, in drop\n    obj = obj._drop_axis(labels, axis, level=level, errors=errors)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/generic.py\", line 4824, in _drop_axis\n    new_axis = axis.drop(labels, errors=errors)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/indexes/base.py\", line 7069, in drop\n    raise KeyError(f\"{labels[mask].tolist()} not found in axis\")\nKeyError: \"['id'] not found in axis\"\n",
+    "result_shape": null
+  },
+  {
+    "id": "338ea810-ffb1-45cb-b53c-9ec6b097b453",
+    "timestamp": "2025-10-27T08:06:19.830893",
+    "query": "Calculate average salary by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.6,
+    "generated_code": "result = df.groupby('department')['salary'].mean().reset_index()\nresult.columns = ['department', 'avg_salary']",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "23322b6c-6389-4119-ba6e-bece2fbd5552",
+    "timestamp": "2025-10-27T08:06:25.108971",
+    "query": "Show sum, average, minimum, and maximum salary by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 5.233,
+    "generated_code": "result = df.groupby('department')['salary'].agg(['sum', 'mean', 'min', 'max']).reset_index()\nresult.columns = ['department', 'sum_salary', 'avg_salary', 'min_salary', 'max_salary']\nresult = result.sort_values(by=['department', 'sum_salary'], ascending=[True, False])",
+    "error": null,
+    "result_shape": [
+      5,
+      5
+    ]
+  },
+  {
+    "id": "6a9a9d23-7ed2-4cc1-8038-de73abc2dab4",
+    "timestamp": "2025-10-27T08:06:28.993905",
+    "query": "Count number of employees in each city",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 3.848,
+    "generated_code": "result = df.groupby('city')['employee_count'].count().reset_index()\nresult.columns = ['city', 'employee_count']\n",
+    "error": "Execution error: 'Column not found: employee_count'\nTraceback (most recent call last):\n  File \"/app/app/services/excel_service.py\", line 87, in execute_query_code\n    exec(code, namespace)\n  File \"<string>\", line 1, in <module>\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/groupby/generic.py\", line 1951, in __getitem__\n    return super().__getitem__(key)\n           ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/base.py\", line 244, in __getitem__\n    raise KeyError(f\"Column not found: {key}\")\nKeyError: 'Column not found: employee_count'\n",
+    "result_shape": null
+  },
+  {
+    "id": "91458c0d-824b-4fd1-b685-5ebb004cc7a2",
+    "timestamp": "2025-10-27T08:06:32.823309",
+    "query": "Calculate standard deviation of salary by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.808,
+    "generated_code": "result = df.groupby('department')['salary'].std().reset_index()\nresult.columns = ['department', 'std_salary']\nresult",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "56c0a626-9e31-4fb5-a677-71d3630e7b28",
+    "timestamp": "2025-10-27T08:06:36.447942",
+    "query": "Show employees with salary greater than 100000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.587,
+    "generated_code": "result = df[df['salary'] > 100000]\nresult = result",
+    "error": null,
+    "result_shape": [
+      59,
+      10
+    ]
+  },
+  {
+    "id": "8aecf968-12f3-4da1-b5bf-c3940457a41d",
+    "timestamp": "2025-10-27T08:06:40.389628",
+    "query": "Filter employees with age greater than 40 AND salary greater than 80000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.876,
+    "generated_code": "result = df[(df['age'] > 40) & (df['salary'] > 80000)]",
+    "error": null,
+    "result_shape": [
+      45,
+      10
+    ]
+  },
+  {
+    "id": "13b7d20f-dd5c-438a-8e7e-256022f8eb34",
+    "timestamp": "2025-10-27T08:06:44.353472",
+    "query": "Show employees in Engineering department OR with salary above 120000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.923,
+    "generated_code": "result = df[(df['department'] == 'Engineering') | (df['salary'] > 120000)]\nresult = result",
+    "error": null,
+    "result_shape": [
+      60,
+      10
+    ]
+  },
+  {
+    "id": "fec29eeb-95e9-43e9-952b-23299e10bec9",
+    "timestamp": "2025-10-27T08:06:47.807692",
+    "query": "Find all employees whose city name contains New",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.409,
+    "generated_code": "result = df[df['city'].str.contains('New')]\nresult",
+    "error": null,
+    "result_shape": [
+      5,
+      10
+    ]
+  },
+  {
+    "id": "b926ea5d-5b60-45b6-a229-e960a400dec0",
+    "timestamp": "2025-10-27T08:06:51.634874",
+    "query": "Extract the year from join_date column and create a new column called join_year",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.761,
+    "generated_code": "df['join_year'] = df['join_date'].dt.year\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      11
+    ]
+  },
+  {
+    "id": "119fd979-8fa6-43ec-a45d-500f183651cd",
+    "timestamp": "2025-10-27T08:06:55.126584",
+    "query": "Extract month and day from join_date",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.443,
+    "generated_code": "df['month'] = df['join_date'].dt.month\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      11
+    ]
+  },
+  {
+    "id": "ad808044-11b0-4961-9eaf-63e67624a777",
+    "timestamp": "2025-10-27T08:07:01.979156",
+    "query": "Calculate years of service from join_date to today",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 6.78,
+    "generated_code": "from datetime import datetime\ndf['join_date'] = pd.to_datetime(df['join_date'])\ndef calculate_years_of_service(row):\n    today = datetime.now()\n    years_of_service = (today - row['join_date']).days / 365.25\n    return int(years_of_service)\ndf['years_of_service'] = df.apply(calculate_years_of_service, axis=1).astype(int)\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      11
+    ]
+  },
+  {
+    "id": "c6413130-d03b-4cdb-b7e7-5dad2fc91775",
+    "timestamp": "2025-10-27T08:07:05.913553",
+    "query": "Show employees who joined after 2020",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.864,
+    "generated_code": "result = df[df['join_date'] > '2020-12-31'].reset_index()\nresult",
+    "error": null,
+    "result_shape": [
+      52,
+      11
+    ]
+  },
+  {
+    "id": "198fd163-41b9-471e-bb81-fe44de57291b",
+    "timestamp": "2025-10-27T08:07:10.005564",
+    "query": "Create a pivot table with department as rows and average salary",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.049,
+    "generated_code": "result = df.groupby('department')['salary'].mean().reset_index()\nresult.columns = ['department', 'avg_salary']\nresult",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "8c74f714-3db7-4ea3-8ff1-55dcfb262691",
+    "timestamp": "2025-10-27T08:07:14.647969",
+    "query": "Create pivot table with department as rows, city as columns, and average salary as values",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 4.602,
+    "generated_code": "result = df.pivot_table(values='salary', index='department', columns='city', aggfunc='mean').reset_index()\nresult.columns = ['department', 'city', 'avg_salary']",
+    "error": "Execution error: Length mismatch: Expected axis has 101 elements, new values have 3 elements\nTraceback (most recent call last):\n  File \"/app/app/services/excel_service.py\", line 87, in execute_query_code\n    exec(code, namespace)\n  File \"<string>\", line 2, in <module>\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/generic.py\", line 6307, in __setattr__\n    return object.__setattr__(self, name, value)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"properties.pyx\", line 69, in pandas._libs.properties.AxisProperty.__set__\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/generic.py\", line 813, in _set_axis\n    self._mgr.set_axis(axis, labels)\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/internals/managers.py\", line 239, in set_axis\n    self._validate_set_axis(axis, new_labels)\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/internals/base.py\", line 98, in _validate_set_axis\n    raise ValueError(\nValueError: Length mismatch: Expected axis has 101 elements, new values have 3 elements\n",
+    "result_shape": null
+  },
+  {
+    "id": "b4a37da1-5160-46fb-8a2d-69f3636374da",
+    "timestamp": "2025-10-27T08:07:18.896512",
+    "query": "Pivot table showing total projects_completed by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.227,
+    "generated_code": "result = df.groupby('department')['projects_completed'].sum().reset_index()\nresult.columns = ['department', 'total_projects_completed']\nresult",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "91f96699-11ff-4a62-8baf-8d206b16e3dd",
+    "timestamp": "2025-10-27T08:07:25.011855",
+    "query": "Unpivot the data keeping id and name as identifiers and converting salary, age, projects_completed into separate rows",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 6.064,
+    "generated_code": "result = df[['id', 'name']].reset_index()\nresult = pd.melt(result, id_vars=['id', 'name'], value_vars=['salary', 'age', 'projects_completed'], var_name='attribute', value_name='value')\nresult = result.dropna(subset=['value'])",
+    "error": "Execution error: \"The following id_vars or value_vars are not present in the DataFrame: ['salary', 'age', 'projects_completed']\"\nTraceback (most recent call last):\n  File \"/app/app/services/excel_service.py\", line 87, in execute_query_code\n    exec(code, namespace)\n  File \"<string>\", line 2, in <module>\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/reshape/melt.py\", line 74, in melt\n    raise KeyError(\nKeyError: \"The following id_vars or value_vars are not present in the DataFrame: ['salary', 'age', 'projects_completed']\"\n",
+    "result_shape": null
+  },
+  {
+    "id": "e4809c54-dc7c-4fac-bab8-a54d996d9a0e",
+    "timestamp": "2025-10-27T08:07:28.700080",
+    "query": "Show first 5 rows to understand the structure",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.505,
+    "generated_code": "print(df.head())\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      10
+    ]
+  },
+  {
+    "id": "b865556a-a6d1-4f3b-a092-174a5c0b54a3",
+    "timestamp": "2025-10-27T08:07:35.048718",
+    "query": "Analyze customer_feedback and classify each as positive, negative, or neutral",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 6.282,
+    "generated_code": "positive_words = ['good', 'great', 'excellent']\nnegative_words = ['bad', 'poor', 'terrible']\ndef classify(text):\n    text_lower = str(text).lower()\n    if any(word in text_lower for word in positive_words):\n        return 'positive'\n    elif any(word in text_lower for word in negative_words):\n        return 'negative'\n    return 'neutral'\ndf['sentiment'] = df['customer_feedback'].apply(classify)\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      6
+    ]
+  },
+  {
+    "id": "25c07df5-4f11-40bd-862c-f42a1aa59cf7",
+    "timestamp": "2025-10-27T08:07:38.873119",
+    "query": "Calculate the length of each customer_feedback text",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.753,
+    "generated_code": "result = df['customer_feedback'].str.len().reset_index()\nresult.columns = ['id', 'length']\nresult",
+    "error": null,
+    "result_shape": [
+      100,
+      2
+    ]
+  },
+  {
+    "id": "1e4edfb9-a718-4ddc-8e46-24eddfc0fd21",
+    "timestamp": "2025-10-27T08:07:44.012913",
+    "query": "Check if feedback contains the word excellent or satisfied",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "list",
+    "success": true,
+    "execution_time_seconds": 5.074,
+    "generated_code": "positive_words = ['excellent', 'satisfied']\ndef classify(text):\n    text_lower = str(text).lower()\n    if any(word in text_lower for word in positive_words):\n        return True\n    else:\n        return False\nresult = df['customer_feedback'].apply(classify)\nresult = result[result == True]\nresult = result.index.tolist()\nprint(result)",
+    "error": null,
+    "result_shape": null
+  },
+  {
+    "id": "0394e256-6619-484b-bb32-3f57e89904b9",
+    "timestamp": "2025-10-27T08:07:47.060498",
+    "query": "Show all rows where product_review contains the word quality",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.009,
+    "generated_code": "result = df[df['product_review'].str.contains('quality')]\nresult",
+    "error": null,
+    "result_shape": [
+      3,
+      5
+    ]
+  },
+  {
+    "id": "89c49bb2-1fb4-41be-8c4d-0ce6e7be3e7a",
+    "timestamp": "2025-10-27T08:07:51.797272",
+    "query": "For employees with salary above 70000, calculate average performance_score by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.697,
+    "generated_code": "result = df[df['salary'] > 70000].groupby('department')['performance_score'].mean().reset_index()\nresult.columns = ['department', 'avg_performance_score']",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "d95d2935-674e-4e2a-86e5-e18189bac598",
+    "timestamp": "2025-10-27T08:07:55.945115",
+    "query": "Show top 10 highest paid employees sorted by salary descending",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.111,
+    "generated_code": "result = df.nlargest(10, 'salary').reset_index(drop=True)\nresult = result",
+    "error": null,
+    "result_shape": [
+      10,
+      10
+    ]
+  },
+  {
+    "id": "514fae48-e190-4977-a95a-f98df31f03cd",
+    "timestamp": "2025-10-27T08:08:00.310269",
+    "query": "Rank employees by salary within each department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.326,
+    "generated_code": "result = df.sort_values(by='salary', ascending=False).groupby('department').rank(method='min')",
+    "error": null,
+    "result_shape": [
+      100,
+      9
+    ]
+  },
+  {
+    "id": "942aa3e1-357e-4d5a-858d-0b85302a4925",
+    "timestamp": "2025-10-27T08:08:04.360041",
+    "query": "Calculate average of nonexistent_column",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 3.963,
+    "generated_code": "result = df['nonexistent_column'].mean()\nresult = result\n",
+    "error": "Execution error: 'nonexistent_column'\nTraceback (most recent call last):\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/indexes/base.py\", line 3802, in get_loc\n    return self._engine.get_loc(casted_key)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"index.pyx\", line 153, in pandas._libs.index.IndexEngine.get_loc\n  File \"index.pyx\", line 182, in pandas._libs.index.IndexEngine.get_loc\n  File \"pandas/_libs/hashtable_class_helper.pxi\", line 7081, in pandas._libs.hashtable.PyObjectHashTable.get_item\n  File \"pandas/_libs/hashtable_class_helper.pxi\", line 7089, in pandas._libs.hashtable.PyObjectHashTable.get_item\nKeyError: 'nonexistent_column'\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/app/app/services/excel_service.py\", line 87, in execute_query_code\n    exec(code, namespace)\n  File \"<string>\", line 1, in <module>\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/frame.py\", line 4090, in __getitem__\n    indexer = self.columns.get_loc(key)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/indexes/base.py\", line 3809, in get_loc\n    raise KeyError(key) from err\nKeyError: 'nonexistent_column'\n",
+    "result_shape": null
+  }
+]

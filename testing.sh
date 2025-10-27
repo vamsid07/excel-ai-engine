@@ -193,7 +193,7 @@ echo "🔗 TEST 7: JOIN OPERATIONS"
 echo "=========================="
 
 echo "Creating second file for join test..."
-curl -s -X POST "$BASE_URL/generate-sample-data?rows=50&include_unstructured=false" > /dev/null
+curl -s -X POST "$BASE_URL/generate-sample-data?rows=100&include_unstructured=true" > /dev/null
 
 run_test "7.1: List available sheets" \
     "curl -s -X GET '$BASE_URL/sheets/data/output/sample_data.xlsx'"
