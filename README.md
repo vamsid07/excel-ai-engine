@@ -231,13 +231,6 @@ chmod +x testing.sh
 
 The script validates all supported operations including math, aggregations, filtering, dates, pivots, joins, and text analysis.
 
-For unit tests:
-
-```bash
-pytest
-pytest --cov=app --cov-report=html
-```
-
 ## Configuration
 
 Environment variables can be set in `.env`:
