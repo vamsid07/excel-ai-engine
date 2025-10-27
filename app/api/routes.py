@@ -1,8 +1,8 @@
 """
-API routes for Excel AI Engine - Day 3 Complete Implementation
+Enhanced API routes with comprehensive error handling
 """
-from fastapi import APIRouter, UploadFile, File, HTTPException, Form
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, UploadFile, File, HTTPException, Form, status
+from fastapi.responses import FileResponse, JSONResponse
 from typing import Optional, List
 import os
 from pathlib import Path
@@ -11,9 +11,9 @@ from app.services.excel_service import ExcelService
 from app.services.join_service import JoinService
 from app.services.export_service import ExportService
 from app.services.query_history import QueryHistory
-from app.services.batch_processor import BatchProcessor
 import json
 import time
+import traceback
 
 router = APIRouter()
 
@@ -23,7 +23,27 @@ excel_service = ExcelService()
 join_service = JoinService()
 export_service = ExportService()
 query_history = QueryHistory()
-batch_processor = BatchProcessor()
+
+
+# Custom exception handler
+def handle_error(error: Exception, operation: str) -> JSONResponse:
+    """Centralized error handling"""
+    error_message = str(error)
+    error_type = type(error).__name__
+    
+    print(f"❌ Error in {operation}: {error_type} - {error_message}")
+    traceback.print_exc()
+    
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "status": "error",
+            "operation": operation,
+            "error_type": error_type,
+            "error_message": error_message,
+            "timestamp": time.time()
+        }
+    )
 
 
 @router.post("/generate-sample-data")
@@ -33,6 +53,13 @@ async def generate_sample_data(
 ):
     """Generate sample Excel data for testing"""
     try:
+        # Validate inputs
+        if rows < 1 or rows > 100000:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Rows must be between 1 and 100,000"
+            )
+        
         from app.utils.data_generator import DataGenerator
         
         generator = DataGenerator()
@@ -54,29 +81,55 @@ async def generate_sample_data(
             "rows_generated": rows,
             "sheets": ["Structured_Data"] + (["Unstructured_Data"] if include_unstructured else [])
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error generating data: {str(e)}")
+        return handle_error(e, "generate_sample_data")
 
 
 @router.post("/upload")
 async def upload_excel(file: UploadFile = File(...)):
     """Upload an Excel file for processing"""
     try:
-        if not file.filename.endswith(('.xlsx', '.xls')):
+        # Validate file type
+        if not file.filename:
             raise HTTPException(
-                status_code=400, 
-                detail="Invalid file format. Only .xlsx and .xls files are supported"
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="No filename provided"
             )
         
+        if not file.filename.endswith(('.xlsx', '.xls', '.csv')):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, 
+                detail="Invalid file format. Only .xlsx, .xls, and .csv files are supported"
+            )
+        
+        # Create directory if not exists
         Path("data/input").mkdir(parents=True, exist_ok=True)
         file_path = f"data/input/{file.filename}"
         
+        # Save file
         with open(file_path, "wb") as buffer:
             content = await file.read()
+            if not content:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Uploaded file is empty"
+                )
             buffer.write(content)
         
+        # Verify file can be read
         sheets = excel_service.list_sheets(file_path)
         file_size = os.path.getsize(file_path)
+        
+        # Check file size (50MB limit)
+        max_size = 50 * 1024 * 1024  # 50MB
+        if file_size > max_size:
+            os.remove(file_path)
+            raise HTTPException(
+                status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                detail=f"File too large. Maximum size is 50MB, uploaded file is {file_size / (1024*1024):.2f}MB"
+            )
         
         return {
             "status": "success",
@@ -88,42 +141,10 @@ async def upload_excel(file: UploadFile = File(...)):
             "sheets": sheets,
             "sheet_count": len(sheets)
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error uploading file: {str(e)}")
-
-
-@router.post("/upload-multiple")
-async def upload_multiple_files(files: List[UploadFile] = File(...)):
-    """Upload multiple Excel files for joining"""
-    try:
-        uploaded_files = []
-        
-        for file in files:
-            if not file.filename.endswith(('.xlsx', '.xls')):
-                continue
-            
-            Path("data/input").mkdir(parents=True, exist_ok=True)
-            file_path = f"data/input/{file.filename}"
-            
-            with open(file_path, "wb") as buffer:
-                content = await file.read()
-                buffer.write(content)
-            
-            sheets = excel_service.list_sheets(file_path)
-            
-            uploaded_files.append({
-                "filename": file.filename,
-                "filepath": file_path,
-                "sheets": sheets
-            })
-        
-        return {
-            "status": "success",
-            "message": f"Uploaded {len(uploaded_files)} files",
-            "files": uploaded_files
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error uploading files: {str(e)}")
+        return handle_error(e, "upload_excel")
 
 
 @router.post("/query")
@@ -136,11 +157,41 @@ async def query_excel(
     start_time = time.time()
     
     try:
+        # Validate inputs
+        if not filepath or not filepath.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Filepath is required"
+            )
+        
+        if not query or not query.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Query is required"
+            )
+        
         if not os.path.exists(filepath):
-            raise HTTPException(status_code=404, detail=f"File not found: {filepath}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"File not found: {filepath}"
+            )
         
-        df, df_info = excel_service.read_excel(filepath, sheet_name)
+        # Read Excel file
+        try:
+            df, df_info = excel_service.read_excel(filepath, sheet_name)
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Failed to read Excel file: {str(e)}"
+            )
         
+        if df.empty:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="DataFrame is empty. Cannot process empty data."
+            )
+        
+        # Generate code using LLM
         llm_response = llm_service.generate_pandas_code(
             query=query,
             df_info=df_info,
@@ -148,19 +199,21 @@ async def query_excel(
         )
         
         if not llm_response['success']:
+            error_msg = llm_response.get('error', 'Unknown LLM error')
             query_history.add_query(
                 query=query,
                 filepath=filepath,
                 result_type="error",
                 success=False,
                 execution_time=time.time() - start_time,
-                error=llm_response['error']
+                error=error_msg
             )
             raise HTTPException(
-                status_code=500, 
-                detail=f"LLM generation failed: {llm_response['error']}"
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
+                detail=f"AI code generation failed: {error_msg}"
             )
         
+        # Validate generated code
         try:
             validated_code = llm_service.validate_and_enhance_code(llm_response['code'])
         except ValueError as e:
@@ -172,13 +225,18 @@ async def query_excel(
                 execution_time=time.time() - start_time,
                 error=str(e)
             )
-            raise HTTPException(status_code=400, detail=f"Code validation failed: {str(e)}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Code validation failed: {str(e)}"
+            )
         
+        # Execute the validated code
         execution_result = excel_service.execute_query_code(df, validated_code)
         
         execution_time = time.time() - start_time
         
         if not execution_result['success']:
+            error_msg = execution_result.get('error', 'Unknown execution error')
             query_history.add_query(
                 query=query,
                 filepath=filepath,
@@ -186,11 +244,11 @@ async def query_excel(
                 success=False,
                 execution_time=execution_time,
                 generated_code=validated_code,
-                error=execution_result['error']
+                error=error_msg
             )
             raise HTTPException(
-                status_code=500,
-                detail=f"Execution failed: {execution_result['error']}"
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Code execution failed: {error_msg}"
             )
         
         # Add to history
@@ -223,7 +281,7 @@ async def query_excel(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Query execution error: {str(e)}")
+        return handle_error(e, "query_excel")
 
 
 @router.post("/join")
@@ -237,6 +295,24 @@ async def join_files(
 ):
     """Join two Excel files"""
     try:
+        # Validate inputs
+        if not os.path.exists(file1):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"First file not found: {file1}"
+            )
+        if not os.path.exists(file2):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Second file not found: {file2}"
+            )
+        
+        if how not in ['inner', 'left', 'right', 'outer']:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid join type: {how}. Must be 'inner', 'left', 'right', or 'outer'"
+            )
+        
         # Load files
         df1, info1 = excel_service.read_excel(file1, sheet1)
         df2, info2 = excel_service.read_excel(file2, sheet2)
@@ -263,86 +339,10 @@ async def join_files(
             "result": result_df.head(100).to_dict(orient='records'),
             "result_columns": result_df.columns.tolist()
         }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Join failed: {str(e)}")
-
-
-@router.post("/query-with-join")
-async def query_with_join(
-    file1: str = Form(...),
-    file2: str = Form(...),
-    query: str = Form(...),
-    join_columns: Optional[str] = Form(None),
-    how: str = Form("inner"),
-    sheet1: Optional[str] = Form(None),
-    sheet2: Optional[str] = Form(None)
-):
-    """Join two files and execute a query on the result"""
-    try:
-        # Load and join files
-        df1, _ = excel_service.read_excel(file1, sheet1)
-        df2, _ = excel_service.read_excel(file2, sheet2)
-        
-        join_cols = None
-        if join_columns:
-            join_cols = [col.strip() for col in join_columns.split(',')]
-        
-        joined_df = join_service.smart_join(df1, df2, join_cols, how)
-        
-        # Execute query on joined data
-        df_info = excel_service._extract_dataframe_info(joined_df)
-        
-        llm_response = llm_service.generate_pandas_code(query, df_info, "df")
-        
-        if not llm_response['success']:
-            raise HTTPException(status_code=500, detail=llm_response['error'])
-        
-        code = llm_service.validate_and_enhance_code(llm_response['code'])
-        execution_result = excel_service.execute_query_code(joined_df, code)
-        
-        if not execution_result['success']:
-            raise HTTPException(status_code=500, detail=execution_result['error'])
-        
-        return {
-            "status": "success",
-            "join_info": {
-                "file1": file1,
-                "file2": file2,
-                "join_type": how,
-                "joined_shape": joined_df.shape
-            },
-            "query": query,
-            "generated_code": code,
-            "explanation": llm_response['explanation'],
-            "result": execution_result['result'],
-            "result_type": execution_result['result_type']
-        }
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Join query failed: {str(e)}")
-
-
-@router.post("/analyze-join")
-async def analyze_join_potential(
-    file1: str = Form(...),
-    file2: str = Form(...),
-    sheet1: Optional[str] = Form(None),
-    sheet2: Optional[str] = Form(None)
-):
-    """Analyze potential for joining two files"""
-    try:
-        df1, _ = excel_service.read_excel(file1, sheet1)
-        df2, _ = excel_service.read_excel(file2, sheet2)
-        
-        analysis = join_service.analyze_join_potential(df1, df2)
-        
-        return {
-            "status": "success",
-            "analysis": analysis
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Analysis failed: {str(e)}")
+        return handle_error(e, "join_files")
 
 
 @router.post("/export")
@@ -355,18 +355,31 @@ async def export_result(
 ):
     """Execute query and export result to new Excel file"""
     try:
+        # Validate inputs
+        if not os.path.exists(filepath):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"File not found: {filepath}"
+            )
+        
         # Execute query
         df, df_info = excel_service.read_excel(filepath, sheet_name)
         
         llm_response = llm_service.generate_pandas_code(query, df_info, "df")
         if not llm_response['success']:
-            raise HTTPException(status_code=500, detail=llm_response['error'])
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"AI code generation failed: {llm_response['error']}"
+            )
         
         code = llm_service.validate_and_enhance_code(llm_response['code'])
         execution_result = excel_service.execute_query_code(df, code)
         
         if not execution_result['success']:
-            raise HTTPException(status_code=500, detail=execution_result['error'])
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Query execution failed: {execution_result['error']}"
+            )
         
         # Convert result to DataFrame
         if execution_result['result_type'] == 'dataframe':
@@ -374,7 +387,7 @@ async def export_result(
             result_df = pd.DataFrame(execution_result['result'])
         else:
             raise HTTPException(
-                status_code=400, 
+                status_code=status.HTTP_400_BAD_REQUEST, 
                 detail="Query result is not a DataFrame. Only DataFrame results can be exported."
             )
         
@@ -405,7 +418,7 @@ async def export_result(
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Export failed: {str(e)}")
+        return handle_error(e, "export_result")
 
 
 @router.get("/download/{filename}")
@@ -415,133 +428,20 @@ async def download_file(filename: str):
         file_path = Path("data/output") / filename
         
         if not file_path.exists():
-            raise HTTPException(status_code=404, detail="File not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"File not found: {filename}"
+            )
         
         return FileResponse(
             path=str(file_path),
             filename=filename,
             media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Download failed: {str(e)}")
-
-
-@router.get("/exports")
-async def list_exports():
-    """List all exported files"""
-    try:
-        exports = export_service.list_exports()
-        return {
-            "status": "success",
-            "exports": exports,
-            "count": len(exports)
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error listing exports: {str(e)}")
-
-
-@router.post("/batch-query")
-async def batch_query(
-    filepath: str = Form(...),
-    queries: str = Form(...),
-    chain: bool = Form(False),
-    sheet_name: Optional[str] = Form(None)
-):
-    """Execute multiple queries in batch"""
-    try:
-        # Parse queries (expects JSON array)
-        query_list = json.loads(queries)
-        
-        if not isinstance(query_list, list):
-            raise HTTPException(status_code=400, detail="Queries must be a JSON array")
-        
-        df, _ = excel_service.read_excel(filepath, sheet_name)
-        
-        result = batch_processor.process_batch(df, query_list, chain_results=chain)
-        
-        return {
-            "status": "success",
-            "batch_result": result
-        }
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON in queries parameter")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Batch processing failed: {str(e)}")
-
-
-@router.get("/history")
-async def get_query_history(
-    limit: int = 10,
-    success_only: bool = False
-):
-    """Get recent query history"""
-    try:
-        history = query_history.get_recent_queries(limit, success_only)
-        return {
-            "status": "success",
-            "history": history,
-            "count": len(history)
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving history: {str(e)}")
-
-
-@router.get("/history/{query_id}")
-async def get_query_by_id(query_id: str):
-    """Get specific query by ID"""
-    try:
-        query = query_history.get_query_by_id(query_id)
-        if query is None:
-            raise HTTPException(status_code=404, detail="Query not found")
-        return {
-            "status": "success",
-            "query": query
-        }
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-
-
-@router.get("/history/search/{search_term}")
-async def search_history(search_term: str, limit: int = 20):
-    """Search query history"""
-    try:
-        results = query_history.search_queries(search_term, limit)
-        return {
-            "status": "success",
-            "search_term": search_term,
-            "results": results,
-            "count": len(results)
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Search failed: {str(e)}")
-
-
-@router.get("/history/stats")
-async def get_history_statistics():
-    """Get query history statistics"""
-    try:
-        stats = query_history.get_statistics()
-        return {
-            "status": "success",
-            "statistics": stats
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
-
-
-@router.delete("/history")
-async def clear_history():
-    """Clear all query history"""
-    try:
-        query_history.clear_history()
-        return {
-            "status": "success",
-            "message": "Query history cleared"
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error: {str(e)}")
+        return handle_error(e, "download_file")
 
 
 @router.post("/analyze")
@@ -552,7 +452,10 @@ async def analyze_excel(
     """Get detailed analysis of an Excel file"""
     try:
         if not os.path.exists(filepath):
-            raise HTTPException(status_code=404, detail=f"File not found: {filepath}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"File not found: {filepath}"
+            )
         
         df, df_info = excel_service.read_excel(filepath, sheet_name)
         
@@ -570,8 +473,10 @@ async def analyze_excel(
                 "statistics": df_info['statistics']
             }
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Analysis error: {str(e)}")
+        return handle_error(e, "analyze_excel")
 
 
 @router.get("/sheets/{filepath:path}")
@@ -579,7 +484,10 @@ async def list_sheets(filepath: str):
     """List all sheets in an Excel file"""
     try:
         if not os.path.exists(filepath):
-            raise HTTPException(status_code=404, detail=f"File not found: {filepath}")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"File not found: {filepath}"
+            )
         
         sheets = excel_service.list_sheets(filepath)
         
@@ -589,54 +497,78 @@ async def list_sheets(filepath: str):
             "sheets": sheets,
             "count": len(sheets)
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error listing sheets: {str(e)}")
+        return handle_error(e, "list_sheets")
 
 
-@router.get("/operations")
-async def list_supported_operations():
-    """List all supported operations with examples"""
-    operations = {
-        "basic_operations": {
-            "query": "Simple queries on single files",
-            "join": "Merge multiple Excel files",
-            "export": "Save query results to new files",
-            "batch": "Execute multiple queries at once"
-        },
-        "examples": {
-            "aggregation": "Calculate average salary by department",
-            "filtering": "Show employees with salary > 100000",
-            "join": "Join sales.xlsx with customers.xlsx on customer_id",
-            "export": "Filter data and export to high_performers.xlsx",
-            "batch": "Filter, then group, then sort - all in one request"
+@router.get("/history")
+async def get_query_history(
+    limit: int = 10,
+    success_only: bool = False
+):
+    """Get recent query history"""
+    try:
+        if limit < 1 or limit > 1000:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Limit must be between 1 and 1000"
+            )
+        
+        history = query_history.get_recent_queries(limit, success_only)
+        return {
+            "status": "success",
+            "history": history,
+            "count": len(history)
         }
-    }
-    
-    return {
-        "status": "success",
-        "message": "This AI system can handle ANY query!",
-        "operations": operations
-    }
+    except HTTPException:
+        raise
+    except Exception as e:
+        return handle_error(e, "get_query_history")
+
+
+@router.get("/history/stats")
+async def get_history_statistics():
+    """Get query history statistics"""
+    try:
+        stats = query_history.get_statistics()
+        return {
+            "status": "success",
+            "statistics": stats
+        }
+    except Exception as e:
+        return handle_error(e, "get_history_statistics")
 
 
 @router.get("/health")
 async def health_check():
     """Check if services are operational"""
     try:
-        llm_status = "operational" if llm_service else "error"
-    except:
-        llm_status = "error"
-    
-    return {
-        "status": "healthy",
-        "services": {
-            "api": "operational",
-            "llm": llm_status,
-            "excel_processing": "operational",
-            "join_service": "operational",
-            "export_service": "operational",
-            "query_history": "operational",
-            "batch_processor": "operational"
-        },
-        "version": "3.0.0 - Day 3 Complete"
-    }
+        # Check LLM service
+        llm_status = "operational"
+        try:
+            if llm_service.use_ollama:
+                import requests
+                response = requests.get(f"{llm_service.ollama_url}/api/tags", timeout=5)
+                llm_status = "operational" if response.status_code == 200 else "error"
+        except:
+            llm_status = "error"
+        
+        return {
+            "status": "healthy",
+            "services": {
+                "api": "operational",
+                "llm": llm_status,
+                "excel_processing": "operational",
+                "join_service": "operational",
+                "export_service": "operational",
+                "query_history": "operational"
+            },
+            "version": "4.0.0 - Production Ready"
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "error": str(e)
+        }

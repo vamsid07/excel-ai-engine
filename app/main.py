@@ -3,8 +3,6 @@ Main FastAPI application entry point
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
 from app.core.config import settings
 from app.api import routes
 from pathlib import Path
@@ -15,19 +13,7 @@ app = FastAPI(
     description="AI-powered Excel data analysis and manipulation engine",
     version="4.0.0",
     docs_url="/api/docs",
-)
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from app.core.config import settings
-from app.api import routes
-
-# Create FastAPI app
-app = FastAPI(
-    title="Excel AI Engine",
-    description="AI-powered Excel data analysis and manipulation engine",
-    version="1.0.0",
-    docs_url="/api/docs",  # Move Swagger to /api/docs
-    redoc_url="/api/redoc"  # Move ReDoc to /api/redoc
+    redoc_url="/api/redoc"
 )
 
 # Add CORS middleware
@@ -39,21 +25,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Create static directory if it doesn't exist
-static_dir = Path("app/static")
-static_dir.mkdir(parents=True, exist_ok=True)
-
-# Mount static files
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
-
 # Include API routes
 app.include_router(routes.router, prefix="/api/v1")
-
-
-@app.get("/")
-async def root():
-    """Serve the web UI"""
-    return FileResponse("app/static/index.html")
 
 
 @app.get("/health")

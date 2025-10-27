@@ -9,7 +9,21 @@ services:
     volumes:
       - ./app:/app/app
       - ./data:/app/data
-    env_file:
-      - .env
+    environment:
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - DEBUG=True
+      - USE_OLLAMA=True
+      - OLLAMA_URL=http://host.docker.internal:11434
+      - OLLAMA_MODEL=llama3.2
+      - OPENAI_API_KEY=not-needed
+      - OPENAI_MODEL=gpt-4o-mini
+      - MAX_FILE_SIZE_MB=50
+      - ALLOWED_EXTENSIONS=.xlsx,.xls
+      - DEFAULT_ROWS=1000
+      - DEFAULT_STRUCTURED_COLUMNS=10
+      - DEFAULT_UNSTRUCTURED_COLUMNS=5
+    # Use host network mode to access Ollama on host (alternative approach)
+    # network_mode: "host"  # Uncomment if host.docker.internal doesn't work
     restart: unless-stopped
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload

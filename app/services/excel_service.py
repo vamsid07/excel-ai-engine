@@ -22,21 +22,19 @@ class ExcelService:
         sheet_name: Optional[str] = None
     ) -> Tuple[pd.DataFrame, Dict[str, Any]]:
         """
-        Read Excel file and extract metadata
-        
-        Args:
-            filepath: Path to Excel file
-            sheet_name: Specific sheet to read (None = first sheet)
-            
-        Returns:
-            Tuple of (DataFrame, metadata_dict)
+        Read Excel or CSV file and extract metadata
         """
         try:
-            # Read Excel file
-            if sheet_name:
-                df = pd.read_excel(filepath, sheet_name=sheet_name)
+            # Handle CSV files
+            if filepath.endswith('.csv'):
+                df = pd.read_csv(filepath)
+                sheet_name = 'CSV'
             else:
-                df = pd.read_excel(filepath)
+                # Read Excel file
+                if sheet_name:
+                    df = pd.read_excel(filepath, sheet_name=sheet_name)
+                else:
+                    df = pd.read_excel(filepath)
             
             # Extract metadata
             metadata = self._extract_dataframe_info(df)
@@ -46,21 +44,23 @@ class ExcelService:
             return df, metadata
             
         except Exception as e:
-            raise ValueError(f"Error reading Excel file: {str(e)}")
+            raise ValueError(f"Error reading file: {str(e)}")
     
     def list_sheets(self, filepath: str) -> list:
-        """List all sheet names in an Excel file"""
+        """List all sheet names in an Excel file or return ['CSV'] for CSV files"""
         try:
+            if filepath.endswith('.csv'):
+                return ['CSV']
             xl_file = pd.ExcelFile(filepath)
             return xl_file.sheet_names
         except Exception as e:
-            raise ValueError(f"Error reading Excel sheets: {str(e)}")
+            raise ValueError(f"Error reading file sheets: {str(e)}")
     
     def _extract_dataframe_info(self, df: pd.DataFrame) -> Dict[str, Any]:
-        """Extract comprehensive information about a DataFrame"""
+        """Extract comprehensive information with better sample data"""
         
-        # Get sample data as string
-        sample_df = df.head(self.max_sample_rows)
+        # Get first 5 rows for sample (better context for LLM)
+        sample_df = df.head(5)
         sample_str = sample_df.to_string(index=False)
         
         # Get statistics for numerical columns
@@ -74,7 +74,7 @@ class ExcelService:
             'shape': df.shape,
             'columns': df.columns.tolist(),
             'dtypes': [str(dtype) for dtype in df.dtypes],
-            'sample_data': sample_str,
+            'sample_data': sample_str,  # This is what LLM sees
             'statistics': stats_str,
             'memory_usage': df.memory_usage(deep=True).sum(),
             'null_counts': df.isnull().sum().to_dict(),
@@ -142,6 +142,10 @@ class ExcelService:
         
         # Handle DataFrame result
         if isinstance(result, pd.DataFrame):
+            # Replace NaN/Inf with None for JSON serialization
+            result = result.replace([float('inf'), float('-inf')], None)
+            result = result.where(pd.notna(result), None)
+            
             # Limit result size
             if len(result) > self.max_result_rows:
                 result = result.head(self.max_result_rows)
@@ -161,6 +165,10 @@ class ExcelService:
         
         # Handle Series result
         elif isinstance(result, pd.Series):
+            # Replace NaN/Inf with None
+            result = result.replace([float('inf'), float('-inf')], None)
+            result = result.where(pd.notna(result), None)
+            
             return {
                 'success': True,
                 'result': result.to_dict(),
@@ -171,6 +179,11 @@ class ExcelService:
         
         # Handle scalar results (int, float, str)
         elif isinstance(result, (int, float, str, bool)):
+            # Handle NaN/Inf in scalar
+            if isinstance(result, float):
+                if pd.isna(result) or result == float('inf') or result == float('-inf'):
+                    result = None
+            
             return {
                 'success': True,
                 'result': result,
