@@ -1,0 +1,17 @@
+[
+  {
+    "id": "6a2ca878-67d4-4cf7-910a-6ee65c8ae686",
+    "timestamp": "2025-11-01T22:41:19.127830",
+    "query": "Calculate average salary",
+    "filepath": "/var/folders/mn/zljzcmy576z0mwdk28nckjxw0000gn/T/tmpwtiu7rfb/test_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 7.937,
+    "generated_code": "result = df.groupby('department')['salary'].mean().reset_index()\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      9
+    ]
+  }
+]

@@ -1,0 +1,14 @@
+[
+  {
+    "id": "88a63225-05ef-41ec-9c1d-8cde631ab814",
+    "timestamp": "2025-11-01T22:41:09.865650",
+    "query": "Query 1",
+    "filepath": "test.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 1.0,
+    "generated_code": null,
+    "error": null,
+    "result_shape": null
+  }
+]
