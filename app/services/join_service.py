@@ -45,6 +45,7 @@ class JoinService:
                 raise ValueError(f"Column '{col}' not found in first dataset")
             if col not in df2.columns:
                 raise ValueError(f"Column '{col}' not found in second dataset")
+        
         try:
             if len(join_columns) == 1:
                 result = pd.merge(
@@ -75,6 +76,7 @@ class JoinService:
         
         if not common_cols:
             return []
+        
         id_keywords = ['id', 'key', 'code', 'number', 'no']
         priority_cols = [
             col for col in common_cols 
@@ -84,7 +86,7 @@ class JoinService:
         if priority_cols:
             return priority_cols[:1]
         
-        return common_cols[:1] 
+        return common_cols[:1]
     
     def multi_join(
         self,

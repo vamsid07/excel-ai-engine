@@ -688,5 +688,1230 @@
     "generated_code": "result = df['nonexistent_column'].mean()\nresult = result\n",
     "error": "Execution error: 'nonexistent_column'\nTraceback (most recent call last):\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/indexes/base.py\", line 3802, in get_loc\n    return self._engine.get_loc(casted_key)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"index.pyx\", line 153, in pandas._libs.index.IndexEngine.get_loc\n  File \"index.pyx\", line 182, in pandas._libs.index.IndexEngine.get_loc\n  File \"pandas/_libs/hashtable_class_helper.pxi\", line 7081, in pandas._libs.hashtable.PyObjectHashTable.get_item\n  File \"pandas/_libs/hashtable_class_helper.pxi\", line 7089, in pandas._libs.hashtable.PyObjectHashTable.get_item\nKeyError: 'nonexistent_column'\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/app/app/services/excel_service.py\", line 87, in execute_query_code\n    exec(code, namespace)\n  File \"<string>\", line 1, in <module>\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/frame.py\", line 4090, in __getitem__\n    indexer = self.columns.get_loc(key)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/indexes/base.py\", line 3809, in get_loc\n    raise KeyError(key) from err\nKeyError: 'nonexistent_column'\n",
     "result_shape": null
+  },
+  {
+    "id": "81758881-6840-40ac-a46c-377083b1c5b9",
+    "timestamp": "2025-10-27T13:31:52.963107",
+    "query": "Add a new column called total_compensation which is salary plus projects_completed times 1000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 9.01,
+    "generated_code": "df['total_compensation'] = df['salary'] + (df['projects_completed'] * 1000)\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      11
+    ]
+  },
+  {
+    "id": "635e7981-4c5a-4771-8890-1f546071abee",
+    "timestamp": "2025-10-27T13:31:57.130944",
+    "query": "Create a column performance_bonus as performance_score multiplied by 1000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.088,
+    "generated_code": "df['performance_bonus'] = df['performance_score'] * 1000\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      11
+    ]
+  },
+  {
+    "id": "31868528-d32c-4ef2-b534-c7e81e8229d8",
+    "timestamp": "2025-10-27T13:32:05.063851",
+    "query": "Calculate monthly salary by dividing salary by 12",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 7.874,
+    "generated_code": "result = df['salary'] / 12\nresult = result.reset_index()\nresult = result.drop('id', axis=1)\nresult = result.rename(columns={'name': 'name', 'email': 'email', 'department': 'department', 'join_date': 'join_date', 'performance_score': 'performance_score', 'projects_completed': 'projects_completed', 'city': 'city'})\nresult = result[['salary', 'name', 'email', 'age', 'department', 'join_date', 'performance_score', 'projects_completed', 'city', 'monthly_salary']]\n",
+    "error": "Execution error: \"['id'] not found in axis\"\nTraceback (most recent call last):\n  File \"/app/app/services/excel_service.py\", line 87, in execute_query_code\n    exec(code, namespace)\n  File \"<string>\", line 3, in <module>\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/frame.py\", line 5568, in drop\n    return super().drop(\n           ^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/generic.py\", line 4782, in drop\n    obj = obj._drop_axis(labels, axis, level=level, errors=errors)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/generic.py\", line 4824, in _drop_axis\n    new_axis = axis.drop(labels, errors=errors)\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/indexes/base.py\", line 7069, in drop\n    raise KeyError(f\"{labels[mask].tolist()} not found in axis\")\nKeyError: \"['id'] not found in axis\"\n",
+    "result_shape": null
+  },
+  {
+    "id": "079e7402-4b91-412d-adcb-aa94ee869df7",
+    "timestamp": "2025-10-27T13:32:08.978838",
+    "query": "Calculate average salary by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.872,
+    "generated_code": "result = df.groupby('department')['salary'].mean().reset_index()\nresult.columns = ['department', 'avg_salary']",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "4d17cfd7-b469-4856-a5dc-327520b41a56",
+    "timestamp": "2025-10-27T13:32:14.724945",
+    "query": "Show sum, average, minimum, and maximum salary by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 5.693,
+    "generated_code": "result = df.groupby('department')['salary'].agg(['sum', 'mean', 'min', 'max']).reset_index()\nresult.columns = ['department', 'sum_salary', 'avg_salary', 'min_salary', 'max_salary']\nresult = result.sort_values(by=['department', 'sum_salary'], ascending=[True, False])",
+    "error": null,
+    "result_shape": [
+      5,
+      5
+    ]
+  },
+  {
+    "id": "12963261-b1fd-4ad0-8566-15d4a69f2a18",
+    "timestamp": "2025-10-27T13:32:18.873044",
+    "query": "Count number of employees in each city",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 4.108,
+    "generated_code": "result = df.groupby('city')['employee_count'].count().reset_index()\nresult.columns = ['city', 'employee_count']\n",
+    "error": "Execution error: 'Column not found: employee_count'\nTraceback (most recent call last):\n  File \"/app/app/services/excel_service.py\", line 87, in execute_query_code\n    exec(code, namespace)\n  File \"<string>\", line 1, in <module>\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/groupby/generic.py\", line 1951, in __getitem__\n    return super().__getitem__(key)\n           ^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/base.py\", line 244, in __getitem__\n    raise KeyError(f\"Column not found: {key}\")\nKeyError: 'Column not found: employee_count'\n",
+    "result_shape": null
+  },
+  {
+    "id": "aae55790-c441-445a-a74f-f871ff7d11a0",
+    "timestamp": "2025-10-27T13:32:23.046222",
+    "query": "Calculate standard deviation of salary by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.137,
+    "generated_code": "result = df.groupby('department')['salary'].std().reset_index()\nresult.columns = ['department', 'std_salary']\nresult",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "dbed0af9-c7cd-4255-923c-c80099cd398e",
+    "timestamp": "2025-10-27T13:32:26.667459",
+    "query": "Show employees with salary greater than 100000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.573,
+    "generated_code": "result = df[df['salary'] > 100000]\nresult = result",
+    "error": null,
+    "result_shape": [
+      59,
+      10
+    ]
+  },
+  {
+    "id": "6431452f-bebe-4cdb-b567-a046f9f5bad1",
+    "timestamp": "2025-10-27T13:32:30.992116",
+    "query": "Filter employees with age greater than 40 AND salary greater than 80000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.262,
+    "generated_code": "result = df[(df['age'] > 40) & (df['salary'] > 80000)]",
+    "error": null,
+    "result_shape": [
+      45,
+      10
+    ]
+  },
+  {
+    "id": "8ffb36b6-0b34-46ea-83bc-ff17f254f31c",
+    "timestamp": "2025-10-27T13:32:35.446606",
+    "query": "Show employees in Engineering department OR with salary above 120000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.4,
+    "generated_code": "result = df[(df['department'] == 'Engineering') | (df['salary'] > 120000)]\nresult = result",
+    "error": null,
+    "result_shape": [
+      60,
+      10
+    ]
+  },
+  {
+    "id": "5f0c97ed-e9fc-4b3f-ba54-8007a586ec03",
+    "timestamp": "2025-10-27T13:32:39.284708",
+    "query": "Find all employees whose city name contains New",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.778,
+    "generated_code": "result = df[df['city'].str.contains('New')]\nresult",
+    "error": null,
+    "result_shape": [
+      5,
+      10
+    ]
+  },
+  {
+    "id": "9eb5cf9a-f6bd-4789-b13a-e478a37d95fa",
+    "timestamp": "2025-10-27T13:32:43.649875",
+    "query": "Extract the year from join_date column and create a new column called join_year",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.3,
+    "generated_code": "df['join_year'] = df['join_date'].dt.year\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      11
+    ]
+  },
+  {
+    "id": "3d18fd16-1217-4868-98a7-b0c94fcea4ad",
+    "timestamp": "2025-10-27T13:32:47.510299",
+    "query": "Extract month and day from join_date",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.783,
+    "generated_code": "df['month'] = df['join_date'].dt.month\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      11
+    ]
+  },
+  {
+    "id": "70e1d805-4d73-4aa9-9b76-03502bb9712d",
+    "timestamp": "2025-10-27T13:32:52.311577",
+    "query": "Calculate years of service from join_date to today",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.733,
+    "generated_code": "from datetime import datetime\ndf['years_of_service'] = (datetime.now() - df['join_date']).dt.days / 365\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      11
+    ]
+  },
+  {
+    "id": "728cf827-9293-48b0-9a10-aad60caf7549",
+    "timestamp": "2025-10-27T13:32:56.686626",
+    "query": "Show employees who joined after 2020",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.315,
+    "generated_code": "result = df[df['join_date'] > '2020-12-31'].reset_index()\nresult",
+    "error": null,
+    "result_shape": [
+      52,
+      11
+    ]
+  },
+  {
+    "id": "aa51b8d1-3cab-4b28-a206-97aef237d23c",
+    "timestamp": "2025-10-27T13:33:01.298031",
+    "query": "Create a pivot table with department as rows and average salary",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.537,
+    "generated_code": "result = df.groupby('department')['salary'].mean().reset_index()\nresult.columns = ['department', 'avg_salary']\nresult",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "9526a08e-cda5-43ee-a5d4-90efbbd1b787",
+    "timestamp": "2025-10-27T13:33:06.553931",
+    "query": "Create pivot table with department as rows, city as columns, and average salary as values",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 5.207,
+    "generated_code": "result = df.pivot_table(values='salary', index='department', columns='city', aggfunc='mean').reset_index()\nresult.columns = ['department', 'city', 'average_salary']",
+    "error": "Execution error: Length mismatch: Expected axis has 101 elements, new values have 3 elements\nTraceback (most recent call last):\n  File \"/app/app/services/excel_service.py\", line 87, in execute_query_code\n    exec(code, namespace)\n  File \"<string>\", line 2, in <module>\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/generic.py\", line 6307, in __setattr__\n    return object.__setattr__(self, name, value)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"properties.pyx\", line 69, in pandas._libs.properties.AxisProperty.__set__\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/generic.py\", line 813, in _set_axis\n    self._mgr.set_axis(axis, labels)\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/internals/managers.py\", line 239, in set_axis\n    self._validate_set_axis(axis, new_labels)\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/internals/base.py\", line 98, in _validate_set_axis\n    raise ValueError(\nValueError: Length mismatch: Expected axis has 101 elements, new values have 3 elements\n",
+    "result_shape": null
+  },
+  {
+    "id": "1c0ad778-4a07-4bbe-b7f1-612d036f6ec1",
+    "timestamp": "2025-10-27T13:33:10.945019",
+    "query": "Pivot table showing total projects_completed by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.365,
+    "generated_code": "result = df.groupby('department')['projects_completed'].sum().reset_index()\nresult.columns = ['department', 'total_projects_completed']\nresult",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "538208b5-9e96-4905-9480-53230256f818",
+    "timestamp": "2025-10-27T13:33:18.567745",
+    "query": "Unpivot the data keeping id and name as identifiers and converting salary, age, projects_completed into separate rows",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 7.583,
+    "generated_code": "result = df[['id', 'name']].copy()\nresult = result.assign(**{col: df[col] for col in ['age', 'salary', 'projects_completed']})\nresult = result.melt(id_vars=['id', 'name'], value_vars=['age', 'salary', 'projects_completed'])\nresult = result.dropna(subset=['value'])\nresult = result.rename(columns={'value': ''})\nresult = result.reset_index(drop=True)\nresult",
+    "error": null,
+    "result_shape": [
+      300,
+      4
+    ]
+  },
+  {
+    "id": "3debbded-e63f-40cf-ac80-c5e6566f2a51",
+    "timestamp": "2025-10-27T13:33:22.684976",
+    "query": "Show first 5 rows to understand the structure",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.924,
+    "generated_code": "print(df.head())\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      10
+    ]
+  },
+  {
+    "id": "108000f1-79d0-4ba3-9055-78a37b2a38dc",
+    "timestamp": "2025-10-27T13:33:29.506641",
+    "query": "Analyze customer_feedback and classify each as positive, negative, or neutral",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 6.747,
+    "generated_code": "positive_words = ['good', 'great', 'excellent']\nnegative_words = ['bad', 'poor', 'terrible']\ndef classify(text):\n    text_lower = str(text).lower()\n    if any(word in text_lower for word in positive_words):\n        return 'positive'\n    elif any(word in text_lower for word in negative_words):\n        return 'negative'\n    return 'neutral'\ndf['sentiment'] = df['customer_feedback'].apply(classify)\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      6
+    ]
+  },
+  {
+    "id": "6c861fa4-bd9d-4dbb-b34f-cb85c501edee",
+    "timestamp": "2025-10-27T13:33:33.785847",
+    "query": "Calculate the length of each customer_feedback text",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.215,
+    "generated_code": "result = df['customer_feedback'].str.len().reset_index()\nresult.columns = ['id', 'length']\nresult",
+    "error": null,
+    "result_shape": [
+      100,
+      2
+    ]
+  },
+  {
+    "id": "2bf5bcbb-4cc7-4f37-96e4-62c2441f7299",
+    "timestamp": "2025-10-27T13:33:39.684995",
+    "query": "Check if feedback contains the word excellent or satisfied",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "list",
+    "success": true,
+    "execution_time_seconds": 5.829,
+    "generated_code": "positive_words = ['excellent', 'satisfied']\ndef classify(text):\n    text_lower = str(text).lower()\n    if any(word in text_lower for word in positive_words):\n        return True\n    else:\n        return False\nresult = df['customer_feedback'].apply(classify)\nresult = result[result == True]\nresult = result.index.tolist()\nprint(result)",
+    "error": null,
+    "result_shape": null
+  },
+  {
+    "id": "41bb26ea-a1f4-45c4-9fa2-a7b2419c27ed",
+    "timestamp": "2025-10-27T13:33:43.316817",
+    "query": "Show all rows where product_review contains the word quality",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.574,
+    "generated_code": "result = df[df['product_review'].str.contains('quality')]\nresult",
+    "error": null,
+    "result_shape": [
+      3,
+      5
+    ]
+  },
+  {
+    "id": "cadd5a5d-ed19-4b56-b235-15469f0aab25",
+    "timestamp": "2025-10-27T13:33:48.709060",
+    "query": "For employees with salary above 70000, calculate average performance_score by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 5.313,
+    "generated_code": "result = df[df['salary'] > 70000].groupby('department')['performance_score'].mean().reset_index()\nresult.columns = ['department', 'avg_performance_score']",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "6ceaecd9-f7ef-4c9f-8276-dbbeb2f23a74",
+    "timestamp": "2025-10-27T13:33:53.608268",
+    "query": "Show top 10 highest paid employees sorted by salary descending",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.822,
+    "generated_code": "result = df.sort_values(by='salary', ascending=False).head(10)\nresult = result",
+    "error": null,
+    "result_shape": [
+      10,
+      10
+    ]
+  },
+  {
+    "id": "3f52f30a-d539-47f4-8e78-d388dc5f12d7",
+    "timestamp": "2025-10-27T13:33:59.299801",
+    "query": "Rank employees by salary within each department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 5.615,
+    "generated_code": "result = df.groupby('department')['salary'].rank(method='min').reset_index()\nresult.columns = ['department', 'rank']\nresult['rank'] = result['rank'].astype(int)\nresult",
+    "error": null,
+    "result_shape": [
+      100,
+      2
+    ]
+  },
+  {
+    "id": "bfe66406-8d91-4cef-8e2c-47f02732977c",
+    "timestamp": "2025-10-27T13:34:03.674750",
+    "query": "Calculate average of nonexistent_column",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 4.278,
+    "generated_code": "result = df['nonexistent_column'].mean()\nresult = df",
+    "error": "Execution error: 'nonexistent_column'\nTraceback (most recent call last):\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/indexes/base.py\", line 3802, in get_loc\n    return self._engine.get_loc(casted_key)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"index.pyx\", line 153, in pandas._libs.index.IndexEngine.get_loc\n  File \"index.pyx\", line 182, in pandas._libs.index.IndexEngine.get_loc\n  File \"pandas/_libs/hashtable_class_helper.pxi\", line 7081, in pandas._libs.hashtable.PyObjectHashTable.get_item\n  File \"pandas/_libs/hashtable_class_helper.pxi\", line 7089, in pandas._libs.hashtable.PyObjectHashTable.get_item\nKeyError: 'nonexistent_column'\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"/app/app/services/excel_service.py\", line 87, in execute_query_code\n    exec(code, namespace)\n  File \"<string>\", line 1, in <module>\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/frame.py\", line 4090, in __getitem__\n    indexer = self.columns.get_loc(key)\n              ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/usr/local/lib/python3.11/site-packages/pandas/core/indexes/base.py\", line 3809, in get_loc\n    raise KeyError(key) from err\nKeyError: 'nonexistent_column'\n",
+    "result_shape": null
+  },
+  {
+    "id": "6df6f648-6f5a-4526-9046-2e5541d153d4",
+    "timestamp": "2025-11-01T12:20:57.987450",
+    "query": "Add a new column called total_compensation which is salary plus projects_completed times 1000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 8.327,
+    "generated_code": "df['total_compensation'] = df['salary'] + (df['projects_completed'] * 1000)\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      11
+    ]
+  },
+  {
+    "id": "5726a51f-5e79-427a-bd40-af5be30158a4",
+    "timestamp": "2025-11-01T12:21:01.981776",
+    "query": "Create a column performance_bonus as performance_score multiplied by 1000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.926,
+    "generated_code": "df['performance_bonus'] = df['performance_score'] * 1000\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      11
+    ]
+  },
+  {
+    "id": "af4c7caf-eeca-4a8e-894c-1bec4f2e61d7",
+    "timestamp": "2025-11-01T12:21:05.895988",
+    "query": "Create a new column monthly_salary by dividing salary by 12",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.86,
+    "generated_code": "df['monthly_salary'] = df['salary'] / 12\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      11
+    ]
+  },
+  {
+    "id": "74b57ae4-724d-4d82-be4d-04398e92a4bd",
+    "timestamp": "2025-11-01T12:21:09.463468",
+    "query": "Calculate average salary by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.52,
+    "generated_code": "result = df.groupby('department')['salary'].mean().reset_index()",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "95ada344-975e-4e24-ab39-ae968c3f8b17",
+    "timestamp": "2025-11-01T12:21:13.423055",
+    "query": "Show sum, average, minimum, and maximum salary by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.919,
+    "generated_code": "result = df.groupby('department')['salary'].agg(['sum', 'mean', 'min', 'max']).reset_index()",
+    "error": null,
+    "result_shape": [
+      5,
+      5
+    ]
+  },
+  {
+    "id": "3582ed39-0f6d-4512-b192-ea1ddaa9e6f7",
+    "timestamp": "2025-11-01T12:21:17.011117",
+    "query": "Count how many employees are in each city",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.548,
+    "generated_code": "result = df.groupby('city').size().reset_index(name='employee_count')",
+    "error": null,
+    "result_shape": [
+      100,
+      2
+    ]
+  },
+  {
+    "id": "34623d07-4758-4c05-96a8-03f2fa65f488",
+    "timestamp": "2025-11-01T12:21:21.891407",
+    "query": "Calculate standard deviation of salary by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.831,
+    "generated_code": "result = df.groupby('department')['salary'].std().reset_index()\nresult = result.rename(columns={'salary': 'std_salary'})\nresult['std_salary'] = result['std_salary'] / 1e3\nresult",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "4bcfe3ee-f089-4e45-9807-292172123541",
+    "timestamp": "2025-11-01T12:21:25.690339",
+    "query": "Show employees with salary greater than 100000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.759,
+    "generated_code": "result = df[df['salary'] > 100000]\nresult = result",
+    "error": null,
+    "result_shape": [
+      59,
+      10
+    ]
+  },
+  {
+    "id": "adea0f8f-5d69-41a0-a800-83c4bf10c8d8",
+    "timestamp": "2025-11-01T12:21:29.988709",
+    "query": "Filter employees with age greater than 40 AND salary greater than 80000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.23,
+    "generated_code": "result = df[(df['age'] > 40) & (df['salary'] > 80000)].reset_index()\n",
+    "error": null,
+    "result_shape": [
+      45,
+      11
+    ]
+  },
+  {
+    "id": "80ff9566-d44f-4e9f-9100-c03de6f35d21",
+    "timestamp": "2025-11-01T12:21:34.086442",
+    "query": "Show employees in Engineering department OR with salary above 120000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.047,
+    "generated_code": "result = df[(df['department'] == 'Engineering') | (df['salary'] > 120000)]",
+    "error": null,
+    "result_shape": [
+      60,
+      10
+    ]
+  },
+  {
+    "id": "606e42fd-9373-4da2-85ae-82a592b39342",
+    "timestamp": "2025-11-01T12:21:38.248594",
+    "query": "Find all employees whose city name contains New",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.113,
+    "generated_code": "result = df[df['city'].str.contains('New')].reset_index()\n",
+    "error": null,
+    "result_shape": [
+      5,
+      11
+    ]
+  },
+  {
+    "id": "875a3e2e-1b4d-40e1-85ae-11bc6748b26d",
+    "timestamp": "2025-11-01T12:21:42.430324",
+    "query": "Extract the year from join_date column and create a new column called join_year",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.137,
+    "generated_code": "df['join_year'] = df['join_date'].dt.year\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      11
+    ]
+  },
+  {
+    "id": "bc90a2d4-3f21-4d0d-a110-7b8e03d23b94",
+    "timestamp": "2025-11-01T12:21:46.379447",
+    "query": "Extract month and day from join_date",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 3.903,
+    "generated_code": null,
+    "error": "Code must assign to 'result' variable. Example: result = df.mean()",
+    "result_shape": null
+  },
+  {
+    "id": "ac418679-8e07-42c7-83b4-76e46274efe5",
+    "timestamp": "2025-11-01T12:21:51.032486",
+    "query": "Calculate years of service from join_date to today",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.626,
+    "generated_code": "df['years_of_service'] = (pd.to_datetime('today') - df['join_date']).dt.days / 365\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      11
+    ]
+  },
+  {
+    "id": "d8f0ce09-025b-4e06-a87a-6a505a785f5a",
+    "timestamp": "2025-11-01T12:21:57.770613",
+    "query": "Show employees who joined after 2020",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 6.692,
+    "generated_code": "result = df[df['join_date'] > '2020-12-31'].reset_index()\nresult = result[['id', 'name', 'email', 'age', 'salary', 'department', 'join_date', 'performance_score', 'projects_completed', 'city']].dropna()\nresult = result[result['join_date'].dt.year > 2020]\nresult = result.groupby(['join_date']).size().reset_index(name='count')",
+    "error": null,
+    "result_shape": [
+      52,
+      2
+    ]
+  },
+  {
+    "id": "62e4f97d-075d-4ed9-9b68-cc514e7f3c9a",
+    "timestamp": "2025-11-01T12:22:01.893267",
+    "query": "Create a pivot table with department as rows and average salary",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.081,
+    "generated_code": "result = df.groupby('department')['salary'].mean().reset_index()",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "6032a38a-bdf5-49c1-bd47-692b2b96ec11",
+    "timestamp": "2025-11-01T12:22:06.532585",
+    "query": "Create pivot table with department as rows, city as columns, and average salary as values",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.594,
+    "generated_code": "result = df.pivot_table(values='salary', index='department', columns='city', aggfunc='mean').reset_index()",
+    "error": null,
+    "result_shape": [
+      5,
+      101
+    ]
+  },
+  {
+    "id": "a87b3a7b-df54-4b31-9c55-ce015591d9a3",
+    "timestamp": "2025-11-01T12:22:10.600437",
+    "query": "Pivot table showing total projects_completed by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.036,
+    "generated_code": "result = df.groupby('department')['projects_completed'].sum().reset_index()",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "c97011df-5f98-414b-ac87-f61b6515b87d",
+    "timestamp": "2025-11-01T12:22:15.359774",
+    "query": "Unpivot the data keeping id and name as identifiers and converting salary, age, projects_completed into separate rows",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.698,
+    "generated_code": "result = pd.melt(df, id_vars=['id', 'name'], value_vars=['salary', 'age', 'projects_completed'], var_name='attribute', value_name='value')",
+    "error": null,
+    "result_shape": [
+      300,
+      4
+    ]
+  },
+  {
+    "id": "3baa4ddd-8960-4a1d-b8f1-5a67b7edf608",
+    "timestamp": "2025-11-01T12:22:19.320583",
+    "query": "Show first 5 rows to understand the structure",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.785,
+    "generated_code": "result = df.head(5)\n",
+    "error": null,
+    "result_shape": [
+      5,
+      10
+    ]
+  },
+  {
+    "id": "12d0c925-607e-4b34-b087-4ecfa501c978",
+    "timestamp": "2025-11-01T12:22:24.327728",
+    "query": "Analyze customer_feedback and classify each as positive, negative, or neutral",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "series",
+    "success": true,
+    "execution_time_seconds": 4.839,
+    "generated_code": "result = df['customer_feedback'].apply(lambda x: 'positive' if 'good' in str(x).lower() else 'negative' if 'bad' in str(x).lower() else 'neutral').reset_index(drop=True)",
+    "error": null,
+    "result_shape": [
+      100
+    ]
+  },
+  {
+    "id": "8fab21f3-f105-442e-9255-433c82314505",
+    "timestamp": "2025-11-01T12:22:28.177425",
+    "query": "Calculate the length of each customer_feedback text",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.812,
+    "generated_code": "result = df['customer_feedback'].str.len().reset_index()",
+    "error": null,
+    "result_shape": [
+      100,
+      2
+    ]
+  },
+  {
+    "id": "2641a438-ce0f-49d2-8dd4-5b8d7006b6d1",
+    "timestamp": "2025-11-01T12:22:33.403093",
+    "query": "Check if feedback contains the word excellent or satisfied",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "scalar",
+    "success": true,
+    "execution_time_seconds": 5.185,
+    "generated_code": "result = df[(df['customer_feedback'].str.contains('excellent|satisfied'))].shape[0]",
+    "error": null,
+    "result_shape": null
+  },
+  {
+    "id": "b2cfffbc-b199-4c46-b491-76829f0617f4",
+    "timestamp": "2025-11-01T12:22:38.715131",
+    "query": "Show all rows where product_review contains the word quality",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 5.27,
+    "generated_code": "result = df[df['product_review'].str.contains('quality')].reset_index()\n",
+    "error": null,
+    "result_shape": [
+      3,
+      6
+    ]
+  },
+  {
+    "id": "cf1549ee-4b2f-4a11-b27c-774f05b8a6cd",
+    "timestamp": "2025-11-01T12:24:13.262458",
+    "query": "For employees with salary above 70000, calculate average performance_score by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 9.476,
+    "generated_code": "result = df[df['salary'] > 70000].groupby('department')['performance_score'].mean().reset_index()",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "df7acdfb-8928-4a73-97a3-69b54a2bbc64",
+    "timestamp": "2025-11-01T12:24:22.219984",
+    "query": "Show top 10 highest paid employees sorted by salary descending",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 8.912,
+    "generated_code": "result = df.nlargest(10, 'salary').reset_index()\nresult = result.sort_values(by='salary', ascending=False)\nresult = result[['id', 'name', 'email', 'age', 'salary', 'department', 'city']]\n",
+    "error": null,
+    "result_shape": [
+      10,
+      7
+    ]
+  },
+  {
+    "id": "8c992d39-ecc6-4e19-a5dd-94bb4d364efa",
+    "timestamp": "2025-11-01T12:24:28.156987",
+    "query": "Rank employees by salary within each department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 5.895,
+    "generated_code": "result = df.sort_values(by='salary', ascending=False).groupby('department').rank(method='min')",
+    "error": null,
+    "result_shape": [
+      100,
+      9
+    ]
+  },
+  {
+    "id": "185bfc81-93a4-4ca7-bd58-61b80baa1fe4",
+    "timestamp": "2025-11-01T12:24:32.536142",
+    "query": "Calculate average of nonexistent_column",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "scalar",
+    "success": true,
+    "execution_time_seconds": 4.297,
+    "generated_code": "result = df['salary'].mean()",
+    "error": null,
+    "result_shape": null
+  },
+  {
+    "id": "0aed3d86-da6b-484d-94b6-b6f7f7897f8c",
+    "timestamp": "2025-11-01T12:25:42.317375",
+    "query": "Add a new column called total_compensation which is salary plus projects_completed times 1000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.353,
+    "generated_code": "df['total_compensation'] = df['salary'] + (df['projects_completed'] * 1000)\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      11
+    ]
+  },
+  {
+    "id": "ab122553-5883-42c3-ae29-f4d0dbb44c62",
+    "timestamp": "2025-11-01T12:25:46.473510",
+    "query": "Create a column performance_bonus as performance_score multiplied by 1000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.102,
+    "generated_code": "df['performance_bonus'] = df['performance_score'] * 1000\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      11
+    ]
+  },
+  {
+    "id": "09188586-477d-492e-ab11-bd000e1b6f04",
+    "timestamp": "2025-11-01T12:25:50.506656",
+    "query": "Create a new column monthly_salary by dividing salary by 12",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.973,
+    "generated_code": "df['monthly_salary'] = df['salary'] / 12\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      11
+    ]
+  },
+  {
+    "id": "0fa08ab3-6530-4f3d-8578-32d3ebe0e3a8",
+    "timestamp": "2025-11-01T12:25:54.286150",
+    "query": "Calculate average salary by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.732,
+    "generated_code": "result = df.groupby('department')['salary'].mean().reset_index()",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "4e52a27b-5d03-4a04-aee0-b48f8c0152fb",
+    "timestamp": "2025-11-01T12:25:58.535268",
+    "query": "Show sum, average, minimum, and maximum salary by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.208,
+    "generated_code": "result = df.groupby('department')['salary'].agg(['sum', 'mean', 'min', 'max']).reset_index()",
+    "error": null,
+    "result_shape": [
+      5,
+      5
+    ]
+  },
+  {
+    "id": "c2825b83-2cc0-4147-a473-cc217dcd02e2",
+    "timestamp": "2025-11-01T12:26:02.471111",
+    "query": "Count how many employees are in each city",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.895,
+    "generated_code": "result = df.groupby('city').size().reset_index(name='employee_count')",
+    "error": null,
+    "result_shape": [
+      100,
+      2
+    ]
+  },
+  {
+    "id": "10011ce7-f189-46a5-89d7-d7282e8df188",
+    "timestamp": "2025-11-01T12:26:07.039072",
+    "query": "Calculate standard deviation of salary by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.523,
+    "generated_code": "result = df.groupby('department')['salary'].std().reset_index()\nresult = result.rename(columns={'salary': 'std_salary'})\nresult",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "e2ba605b-e53c-4f43-80fc-74759a957a7c",
+    "timestamp": "2025-11-01T12:26:11.060461",
+    "query": "Show employees with salary greater than 100000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 3.982,
+    "generated_code": "result = df[df['salary'] > 100000]\nresult = result",
+    "error": null,
+    "result_shape": [
+      59,
+      10
+    ]
+  },
+  {
+    "id": "fc532170-c85b-44ff-bb08-d06d50076cab",
+    "timestamp": "2025-11-01T12:26:15.562920",
+    "query": "Filter employees with age greater than 40 AND salary greater than 80000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.46,
+    "generated_code": "result = df[(df['age'] > 40) & (df['salary'] > 80000)].reset_index()",
+    "error": null,
+    "result_shape": [
+      45,
+      11
+    ]
+  },
+  {
+    "id": "2ed6af0d-46b3-41eb-be00-279bbde00f71",
+    "timestamp": "2025-11-01T12:26:19.940330",
+    "query": "Show employees in Engineering department OR with salary above 120000",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.33,
+    "generated_code": "result = df[(df['department'] == 'Engineering') | (df['salary'] > 120000)]",
+    "error": null,
+    "result_shape": [
+      60,
+      10
+    ]
+  },
+  {
+    "id": "c5fede5e-62f4-429c-a2e0-5bfeb8d41e02",
+    "timestamp": "2025-11-01T12:26:24.031823",
+    "query": "Find all employees whose city name contains New",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.047,
+    "generated_code": "result = df[df['city'].str.contains('New')].reset_index()",
+    "error": null,
+    "result_shape": [
+      5,
+      11
+    ]
+  },
+  {
+    "id": "ffda8ee0-54df-4438-87ff-ee099e806acb",
+    "timestamp": "2025-11-01T12:26:28.313133",
+    "query": "Extract the year from join_date column and create a new column called join_year",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.22,
+    "generated_code": "df['join_year'] = df['join_date'].dt.year\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      11
+    ]
+  },
+  {
+    "id": "54893051-247d-4f0f-af50-ca507a8e2a81",
+    "timestamp": "2025-11-01T12:26:32.243212",
+    "query": "Extract month and day from join_date",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "error",
+    "success": false,
+    "execution_time_seconds": 3.885,
+    "generated_code": null,
+    "error": "Code must assign to 'result' variable. Example: result = df.mean()",
+    "result_shape": null
+  },
+  {
+    "id": "90d4903d-9aca-4268-b580-7e639d220092",
+    "timestamp": "2025-11-01T12:26:37.071174",
+    "query": "Calculate years of service from join_date to today",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.8,
+    "generated_code": "df['years_of_service'] = (pd.to_datetime('today') - df['join_date']).dt.days / 365\nresult = df",
+    "error": null,
+    "result_shape": [
+      100,
+      11
+    ]
+  },
+  {
+    "id": "91ed08d0-24ac-4a38-bcb8-1a4c3067f6f9",
+    "timestamp": "2025-11-01T12:26:44.365527",
+    "query": "Show employees who joined after 2020",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 7.246,
+    "generated_code": "result = df[df['join_date'] > '2020-12-31'].reset_index()\nresult = result[result['id'] == 4]\nresult = result[['id', 'name', 'email', 'age', 'salary', 'department', 'join_date']].reset_index(drop=True)\n",
+    "error": null,
+    "result_shape": [
+      0,
+      7
+    ]
+  },
+  {
+    "id": "6eaba4e6-cf7e-4eb1-80a8-34be770549c6",
+    "timestamp": "2025-11-01T12:26:53.468503",
+    "query": "Create a pivot table with department as rows and average salary",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 9.062,
+    "generated_code": "result = df.pivot_table(values='salary', index='department', aggfunc='mean').reset_index()",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "5fcb693a-7164-4cea-84d0-0bc6648c07c4",
+    "timestamp": "2025-11-01T12:27:13.071008",
+    "query": "Create pivot table with department as rows, city as columns, and average salary as values",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 19.559,
+    "generated_code": "result = df.pivot_table(values='salary', index='department', columns='city', aggfunc='mean').reset_index()",
+    "error": null,
+    "result_shape": [
+      5,
+      101
+    ]
+  },
+  {
+    "id": "b3ed3f65-072c-4e89-9040-d48994c143cc",
+    "timestamp": "2025-11-01T12:27:23.374191",
+    "query": "Pivot table showing total projects_completed by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 10.268,
+    "generated_code": "result = df.groupby('department')['projects_completed'].sum().reset_index()",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "30012e39-8b6f-463a-b5a0-06012fa8c5a7",
+    "timestamp": "2025-11-01T12:27:32.694176",
+    "query": "Unpivot the data keeping id and name as identifiers and converting salary, age, projects_completed into separate rows",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 9.261,
+    "generated_code": "result = pd.melt(df, id_vars=['id', 'name'], value_vars=['salary', 'age', 'projects_completed'], var_name='attribute', value_name='value')",
+    "error": null,
+    "result_shape": [
+      300,
+      4
+    ]
+  },
+  {
+    "id": "284b2877-224e-4861-9a3a-d86b95d7dff1",
+    "timestamp": "2025-11-01T12:27:39.423425",
+    "query": "Show first 5 rows to understand the structure",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 6.56,
+    "generated_code": "result = df.head(5)\n",
+    "error": null,
+    "result_shape": [
+      5,
+      10
+    ]
+  },
+  {
+    "id": "ca9961d1-d081-4b01-aed3-3b2f471afa7a",
+    "timestamp": "2025-11-01T12:27:47.204920",
+    "query": "Analyze customer_feedback and classify each as positive, negative, or neutral",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "series",
+    "success": true,
+    "execution_time_seconds": 7.623,
+    "generated_code": "result = df['customer_feedback'].apply(lambda x: 'positive' if 'good' in str(x).lower() else 'negative' if 'bad' in str(x).lower() else 'neutral').reset_index(drop=True)",
+    "error": null,
+    "result_shape": [
+      100
+    ]
+  },
+  {
+    "id": "6543baa7-e33a-47e9-a985-7204fe9bc0f6",
+    "timestamp": "2025-11-01T12:27:52.104500",
+    "query": "Calculate the length of each customer_feedback text",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.86,
+    "generated_code": "result = df['customer_feedback'].str.len().reset_index()",
+    "error": null,
+    "result_shape": [
+      100,
+      2
+    ]
+  },
+  {
+    "id": "6c6854b6-b1a1-4ceb-bca0-069f8a2a0686",
+    "timestamp": "2025-11-01T12:27:57.721024",
+    "query": "Check if feedback contains the word excellent or satisfied",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "scalar",
+    "success": true,
+    "execution_time_seconds": 5.574,
+    "generated_code": "result = df[(df['customer_feedback'].str.contains('excellent|satisfied'))].shape[0]",
+    "error": null,
+    "result_shape": null
+  },
+  {
+    "id": "639529b0-d74b-4c42-8eab-a564e8f260d9",
+    "timestamp": "2025-11-01T12:28:02.579708",
+    "query": "Show all rows where product_review contains the word quality",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 4.816,
+    "generated_code": "result = df[df['product_review'].str.contains('quality', case=False)]",
+    "error": null,
+    "result_shape": [
+      72,
+      5
+    ]
+  },
+  {
+    "id": "a9f39d90-59f5-4ea6-8939-7224bad85492",
+    "timestamp": "2025-11-01T12:29:17.570901",
+    "query": "For employees with salary above 70000, calculate average performance_score by department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 10.292,
+    "generated_code": "result = df[df['salary'] > 70000].groupby('department')['performance_score'].mean().reset_index()",
+    "error": null,
+    "result_shape": [
+      5,
+      2
+    ]
+  },
+  {
+    "id": "aeba6306-6e8b-48a3-9dcd-9fea63403310",
+    "timestamp": "2025-11-01T12:29:26.897308",
+    "query": "Show top 10 highest paid employees sorted by salary descending",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 9.258,
+    "generated_code": "result = df.nlargest(10, 'salary').reset_index()\nresult = result.sort_values(by='salary', ascending=False)\nresult = result[['id', 'name', 'salary']]\n",
+    "error": null,
+    "result_shape": [
+      10,
+      3
+    ]
+  },
+  {
+    "id": "4d9b4d11-fbcc-48be-9294-1f541bbdd96e",
+    "timestamp": "2025-11-01T12:29:33.625451",
+    "query": "Rank employees by salary within each department",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "dataframe",
+    "success": true,
+    "execution_time_seconds": 6.684,
+    "generated_code": "result = df.sort_values(by='salary', ascending=False).groupby('department').rank(method='min')",
+    "error": null,
+    "result_shape": [
+      100,
+      9
+    ]
+  },
+  {
+    "id": "5c2ff48a-c8ee-4df6-a3d1-b4a767fcf2e0",
+    "timestamp": "2025-11-01T12:29:39.272573",
+    "query": "Calculate average of nonexistent_column",
+    "filepath": "data/output/sample_data.xlsx",
+    "result_type": "scalar",
+    "success": true,
+    "execution_time_seconds": 5.558,
+    "generated_code": "result = df['salary'].mean()",
+    "error": null,
+    "result_shape": null
   }
 ]

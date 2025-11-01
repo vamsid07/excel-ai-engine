@@ -11,6 +11,9 @@ from app.services.query_history import QueryHistory
 import json
 import time
 import traceback
+import re
+from app.services.text_service import TextAnalysisService
+text_service = TextAnalysisService()
 
 router = APIRouter()
 
@@ -389,6 +392,130 @@ async def export_result(
     except Exception as e:
         return handle_error(e, "export_result")
 
+@router.post("/query-join")
+async def query_join(
+    query: str = Form(...),
+    file1: str = Form(...),
+    file2: str = Form(...),
+    sheet1: Optional[str] = Form(None),
+    sheet2: Optional[str] = Form(None)
+):
+    start_time = time.time()
+    
+    try:
+        if not os.path.exists(file1):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"First file not found: {file1}"
+            )
+        if not os.path.exists(file2):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Second file not found: {file2}"
+            )
+        
+        df1, info1 = excel_service.read_excel(file1, sheet1)
+        df2, info2 = excel_service.read_excel(file2, sheet2)
+        
+        join_type = 'inner'
+        query_lower = query.lower()
+        if 'left join' in query_lower or 'left outer' in query_lower:
+            join_type = 'left'
+        elif 'right join' in query_lower or 'right outer' in query_lower:
+            join_type = 'right'
+        elif 'outer join' in query_lower or 'full outer' in query_lower or 'full join' in query_lower:
+            join_type = 'outer'
+        
+        join_columns = None
+        on_pattern = r'on\s+(\w+)'
+        import re
+        on_match = re.search(on_pattern, query_lower)
+        if on_match:
+            join_col = on_match.group(1)
+            for col in info1['columns']:
+                if join_col in col.lower():
+                    join_columns = [col]
+                    break
+        
+        if not join_columns:
+            using_pattern = r'using\s+(\w+)'
+            using_match = re.search(using_pattern, query_lower)
+            if using_match:
+                join_col = using_match.group(1)
+                for col in info1['columns']:
+                    if join_col in col.lower():
+                        join_columns = [col]
+                        break
+        
+        result_df = join_service.smart_join(df1, df2, join_columns, join_type)
+        
+        execution_time = time.time() - start_time
+        
+        return {
+            "status": "success",
+            "query": query,
+            "file1": file1,
+            "file2": file2,
+            "join_type": join_type,
+            "join_columns": join_columns or join_service._detect_join_columns(df1, df2),
+            "input_shapes": {
+                "file1": info1['shape'],
+                "file2": info2['shape']
+            },
+            "result_shape": result_df.shape,
+            "result": result_df.head(100).to_dict(orient='records'),
+            "result_columns": result_df.columns.tolist(),
+            "execution_time_seconds": round(execution_time, 3)
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        return handle_error(e, "query_join")
+    
+@router.post("/analyze-text")
+async def analyze_text(
+    filepath: str = Form(...),
+    column: str = Form(...),
+    analysis_type: str = Form("sentiment"),
+    sheet_name: Optional[str] = Form(None)
+):
+    try:
+        if not os.path.exists(filepath):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"File not found: {filepath}"
+            )
+        
+        valid_types = ['sentiment', 'summary', 'keywords', 'length', 'word_count']
+        if analysis_type not in valid_types:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid analysis type. Must be one of: {', '.join(valid_types)}"
+            )
+        
+        df, df_info = excel_service.read_excel(filepath, sheet_name)
+        
+        if column not in df.columns:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Column '{column}' not found. Available columns: {', '.join(df.columns)}"
+            )
+        
+        result_df = text_service.analyze_text_column(df, column, analysis_type)
+        
+        return {
+            "status": "success",
+            "filepath": filepath,
+            "column": column,
+            "analysis_type": analysis_type,
+            "result_shape": result_df.shape,
+            "result": result_df.head(100).to_dict(orient='records'),
+            "new_columns": [col for col in result_df.columns if col not in df.columns]
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        return handle_error(e, "analyze_text")
 
 @router.get("/download/{filename}")
 async def download_file(filename: str):

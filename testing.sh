@@ -75,7 +75,7 @@ run_test "1.3: Division operation" \
     "curl -s -X POST '$BASE_URL/query' \
     -F 'filepath=data/output/sample_data.xlsx' \
     -F 'sheet_name=Structured_Data' \
-    -F 'query=Calculate monthly salary by dividing salary by 12'"
+    -F 'query=Create a new column monthly_salary by dividing salary by 12'"
 
 echo "📊 TEST 2: AGGREGATION OPERATIONS"
 echo "=================================="
@@ -96,7 +96,7 @@ run_test "2.3: Count by category" \
     "curl -s -X POST '$BASE_URL/query' \
     -F 'filepath=data/output/sample_data.xlsx' \
     -F 'sheet_name=Structured_Data' \
-    -F 'query=Count number of employees in each city'"
+    -F 'query=Count how many employees are in each city'"
 
 run_test "2.4: Standard deviation" \
     "curl -s -X POST '$BASE_URL/query' \
@@ -203,6 +203,11 @@ run_test "7.2: Analyze join potential (auto-detect common columns)" \
     -F 'filepath=data/output/sample_data.xlsx' \
     -F 'sheet_name=Structured_Data' \
     -F 'query=Show first 5 rows to understand the structure'"
+run_test "7.3: Natural language join query" \
+    "curl -s -X POST '$BASE_URL/query-join' \
+    -F 'query=Join these files on id column using inner join' \
+    -F 'file1=data/output/sample_data.xlsx' \
+    -F 'file2=data/output/sample_data.xlsx'"
 
 echo "📝 TEST 8: UNSTRUCTURED DATA (TEXT ANALYSIS)"
 echo "============================================="
@@ -230,6 +235,13 @@ run_test "8.4: Text contains filter" \
     -F 'filepath=data/output/sample_data.xlsx' \
     -F 'sheet_name=Unstructured_Data' \
     -F 'query=Show all rows where product_review contains the word quality'"
+
+run_test "8.5: Text summarization" \
+    "curl -s -X POST '$BASE_URL/analyze-text' \
+    -F 'filepath=data/output/sample_data.xlsx' \
+    -F 'sheet_name=Unstructured_Data' \
+    -F 'column=customer_feedback' \
+    -F 'analysis_type=summary'"
 
 echo "🎯 BONUS: COMPLEX OPERATIONS"
 echo "============================="
