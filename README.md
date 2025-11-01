@@ -23,6 +23,7 @@ Query your Excel data using plain English. The system interprets your intent and
 - Result export with formatting
 - Batch query processing
 - Docker containerization
+- Interactive API documentation (Swagger UI)
 
 ## Prerequisites
 
@@ -35,12 +36,10 @@ Query your Excel data using plain English. The system interprets your intent and
 Install Ollama and pull the required model:
 
 ```bash
-# Install Ollama from https://ollama.ai
+curl -fsSL https://ollama.com/install.sh | sh
 
-# Pull llama3.2 model
 ollama pull llama3.2
 
-# Start Ollama server
 ollama serve
 ```
 
@@ -68,7 +67,7 @@ OLLAMA_MODEL=llama3.2
 
 Start the server:
 ```bash
-python -m app.main
+python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 Access the API at `http://localhost:8000`
@@ -78,7 +77,7 @@ Access the API at `http://localhost:8000`
 Ensure Ollama is running on your host machine, then:
 
 ```bash
-docker-compose up --build
+docker-compose up --build -d
 ```
 
 The service will be available at `http://localhost:8000`
@@ -89,49 +88,30 @@ Interactive API documentation is available at:
 - Swagger UI: `http://localhost:8000/docs`
 - ReDoc: `http://localhost:8000/redoc`
 
-## Usage Examples
+## Quick Start
 
-### Generate Test Data
+### 1. Generate Test Data
 
 ```bash
-python -m app.utils.data_generator
+curl -X POST "http://localhost:8000/api/v1/generate-sample-data?rows=1000&include_unstructured=true"
 ```
 
-This creates a sample Excel file with 1000 rows of structured data including employee information, dates, and performance metrics.
+This creates a sample Excel file with 1000 rows of structured and unstructured data.
 
-### Basic Query
+### 2. Run Queries
 
 ```bash
 curl -X POST "http://localhost:8000/api/v1/query" \
   -F "filepath=data/output/sample_data.xlsx" \
+  -F "sheet_name=Structured_Data" \
   -F "query=Calculate average salary by department"
 ```
 
-### File Upload
+### 3. Run Complete Test Suite
 
 ```bash
-curl -X POST "http://localhost:8000/api/v1/upload" \
-  -F "file=@your_file.xlsx"
-```
-
-### Multi-File Join
-
-```bash
-curl -X POST "http://localhost:8000/api/v1/join" \
-  -F "file1=data/input/employees.xlsx" \
-  -F "file2=data/input/departments.xlsx" \
-  -F "join_columns=department_id" \
-  -F "how=inner"
-```
-
-### Export Results
-
-```bash
-curl -X POST "http://localhost:8000/api/v1/export" \
-  -F "filepath=data/output/sample_data.xlsx" \
-  -F "query=Show top 10 highest paid employees" \
-  -F "output_filename=top_earners.xlsx" \
-  -F "formatted=true"
+chmod +x testing.sh
+./testing.sh
 ```
 
 ## Supported Query Types
@@ -139,64 +119,66 @@ curl -X POST "http://localhost:8000/api/v1/export" \
 ### Mathematical Operations
 Create calculated columns by combining existing data with arithmetic operations.
 
-Example: "Add salary and bonus to create total_compensation column"
+**Examples:**
+- "Create a new column monthly_salary by dividing salary by 12"
+- "Add salary and bonus to create total_compensation column"
+- "Multiply performance_score by 1000 to get performance_bonus"
 
 ### Aggregation Analysis
 Perform statistical computations with optional grouping.
 
-Example: "Show sum, average, minimum and maximum salary by department"
+**Examples:**
+- "Calculate average salary by department"
+- "Show sum, average, minimum and maximum salary by department"
+- "Count how many employees are in each city"
+- "Calculate standard deviation of salary by department"
 
 ### Data Filtering
 Extract subsets based on single or multiple conditions.
 
-Example: "Find employees with age over 40 and salary above 80000"
+**Examples:**
+- "Show employees with salary greater than 100000"
+- "Filter employees with age greater than 40 AND salary greater than 80000"
+- "Show employees in Engineering department OR with salary above 120000"
+- "Find all employees whose city name contains New"
 
 ### Temporal Operations
 Extract date components or calculate time differences.
 
-Example: "Calculate years of service from join_date to today"
+**Examples:**
+- "Extract the year from join_date column and create a new column called join_year"
+- "Extract month and day from join_date"
+- "Calculate years of service from join_date to today"
+- "Show employees who joined after 2020"
 
 ### Pivot Tables
 Transform data between wide and long formats.
 
-Example: "Create pivot with department as rows and average salary by city"
+**Examples:**
+- "Create a pivot table with department as rows and average salary"
+- "Create pivot table with department as rows, city as columns, and average salary as values"
+- "Pivot table showing total projects_completed by department"
+
+### Unpivot Operations
+Convert wide format to long format.
+
+**Examples:**
+- "Unpivot the data keeping id and name as identifiers and converting salary, age, projects_completed into separate rows"
 
 ### Data Joining
 Combine multiple datasets based on common keys.
 
-Example: "Join employee data with sales data on employee_id"
+**Examples:**
+- "Join these files on id column using inner join"
+- Direct API call with file paths and join parameters
 
 ### Text Analysis
 Classify or analyze unstructured text content.
 
-Example: "Classify customer feedback as positive, negative, or neutral"
-
-## Project Structure
-
-```
-excel-ai-engine/
-├── app/
-│   ├── api/
-│   │   └── routes.py           # API endpoints
-│   ├── core/
-│   │   └── config.py           # Configuration
-│   ├── services/
-│   │   ├── excel_service.py    # Excel processing
-│   │   ├── llm_service.py      # LLM integration
-│   │   ├── join_service.py     # Multi-file operations
-│   │   ├── export_service.py   # Result export
-│   │   └── query_history.py    # History tracking
-│   ├── utils/
-│   │   └── data_generator.py   # Test data creation
-│   └── main.py                 # Application entry
-├── data/
-│   ├── input/                  # Upload directory
-│   └── output/                 # Results directory
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-└── README.md
-```
+**Examples:**
+- "Analyze customer_feedback and classify each as positive, negative, or neutral"
+- "Calculate the length of each customer_feedback text"
+- "Show all rows where product_review contains the word quality"
 
 ## API Endpoints
 
@@ -209,27 +191,43 @@ excel-ai-engine/
 
 ### Advanced Operations
 - `POST /api/v1/join` - Join two files
+- `POST /api/v1/query-join` - Natural language join query
 - `POST /api/v1/export` - Execute query and export
 - `GET /api/v1/download/{filename}` - Download exported file
+- `POST /api/v1/analyze-text` - Text analysis operations
 
 ### History Management
 - `GET /api/v1/history` - View query history
 - `GET /api/v1/history/stats` - Get usage statistics
-- `GET /api/v1/history/search/{term}` - Search past queries
 
 ### System
 - `GET /api/v1/health` - Service health check
 
 ## Testing
 
-Run the complete test suite:
+Run the complete test suite covering all 8 required operations:
 
 ```bash
 chmod +x testing.sh
 ./testing.sh
 ```
 
-The script validates all supported operations including math, aggregations, filtering, dates, pivots, joins, and text analysis.
+The test suite validates:
+1. Basic Math Operations (3 tests)
+2. Aggregation Operations (4 tests)
+3. Filter Operations (4 tests)
+4. Date Operations (4 tests)
+5. Pivot Operations (3 tests)
+6. Unpivot Operations (1 test)
+7. Join Operations (3 tests)
+8. Unstructured Data Operations (5 tests)
+9. Complex Operations (3 tests)
+10. Error Handling (3 tests)
+11. Export Operations (2 tests)
+12. Analysis Operations (1 test)
+13. History Operations (2 tests)
+
+**Total: 38 tests**
 
 ## Configuration
 
@@ -247,20 +245,29 @@ MAX_FILE_SIZE_MB=50
 ALLOWED_EXTENSIONS=.xlsx,.xls
 ```
 
-## LLM Integration
+## Architecture
 
-The system uses Ollama for local LLM inference, providing:
-- Complete data privacy (no external API calls)
-- No usage costs
-- Fast inference on local hardware
-- Full control over model selection
+The system follows a layered architecture:
 
-### Supported Models
-While the default is llama3.2, you can use other Ollama models by updating `OLLAMA_MODEL` in your `.env` file. Tested with:
-- llama3.2 (recommended)
-- llama3.1
-- mistral
-- codellama
+1. **API Layer** (routes.py) - HTTP request/response handling
+2. **Service Layer** - Business logic
+   - LLM Service - Code generation and validation
+   - Excel Service - File reading and code execution
+   - Join Service - Multi-file operations
+   - Export Service - Result formatting and export
+   - Text Service - Unstructured data analysis
+   - Query History - Tracking and statistics
+3. **Utility Layer** - Helper functions and data generation
+
+## How It Works
+
+1. User submits natural language query via API
+2. System reads Excel file and extracts metadata
+3. LLM generates pandas code based on query and data structure
+4. Code is validated for security and correctness
+5. Code executes in isolated namespace
+6. Results are formatted and returned to user
+7. Query and result are logged to history
 
 ## Security Considerations
 
@@ -270,7 +277,7 @@ The system includes multiple safety measures:
 - No file system access from generated code
 - No network operations from generated code
 - Input sanitization and validation
-- File size limits
+- File size limits (50MB max)
 
 ## Performance
 
@@ -291,57 +298,52 @@ The API provides detailed error responses with:
 
 ### Ollama Connection Issues
 ```bash
-# Check if Ollama is running
 curl http://localhost:11434/api/tags
 
-# Restart Ollama
 ollama serve
 ```
 
 ### Docker Networking
 If Docker container cannot connect to Ollama on host:
-- Use `host.docker.internal:11434` (macOS/Windows)
-- Use `172.17.0.1:11434` (Linux)
+- macOS/Windows: Use `host.docker.internal:11434`
+- Linux: Use `172.17.0.1:11434`
 - Or add `network_mode: "host"` to docker-compose.yml
 
 ### Model Not Found
 ```bash
-# Verify model is installed
 ollama list
 
-# Pull model if missing
 ollama pull llama3.2
 ```
 
-## Architecture
+## Project Structure
 
-The system follows a layered architecture:
-
-1. **API Layer** (routes.py) - Handles HTTP requests and responses
-2. **Service Layer** - Business logic for different operations
-   - LLM Service - Code generation and validation
-   - Excel Service - File reading and code execution
-   - Join Service - Multi-file operations
-   - Export Service - Result formatting and export
-3. **Utility Layer** - Helper functions and data generation
-
-## How It Works
-
-1. User submits natural language query via API
-2. System reads Excel file and extracts metadata
-3. LLM generates pandas code based on query and data structure
-4. Code is validated for security and correctness
-5. Code executes in isolated namespace
-6. Results are formatted and returned to user
-7. Query and result are logged to history
-
-## Contributing
-
-Contributions are welcome. Please ensure:
-- Code follows existing style patterns
-- All tests pass
-- New features include appropriate tests
-- Documentation is updated
+```
+excel-ai-engine/
+├── app/
+│   ├── api/
+│   │   └── routes.py
+│   ├── core/
+│   │   └── config.py
+│   ├── services/
+│   │   ├── excel_service.py
+│   │   ├── llm_service.py
+│   │   ├── join_service.py
+│   │   ├── export_service.py
+│   │   ├── text_service.py
+│   │   └── query_history.py
+│   ├── utils/
+│   │   └── data_generator.py
+│   └── main.py
+├── data/
+│   ├── input/
+│   └── output/
+├── Dockerfile
+├── docker-compose.yml
+├── requirements.txt
+├── testing.sh
+└── README.md
+```
 
 ## License
 

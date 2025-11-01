@@ -9,7 +9,7 @@ import traceback
 class ExcelService:
     
     def __init__(self):
-        self.max_sample_rows = 3
+        self.max_sample_rows = 5
         self.max_result_rows = 10000
     
     def read_excel(
@@ -27,6 +27,9 @@ class ExcelService:
                     df = pd.read_excel(filepath, sheet_name=sheet_name)
                 else:
                     df = pd.read_excel(filepath)
+            
+            if df.empty:
+                raise ValueError("DataFrame is empty after reading file")
             
             metadata = self._extract_dataframe_info(df)
             metadata['filepath'] = filepath
@@ -49,12 +52,16 @@ class ExcelService:
     def _extract_dataframe_info(self, df: pd.DataFrame) -> Dict[str, Any]:
         
         sample_df = df.head(5)
-        sample_str = sample_df.to_string(index=False)
+        sample_str = sample_df.to_string(index=False, max_cols=20)
         
         try:
-            stats_df = df.describe()
-            stats_str = stats_df.to_string()
-        except:
+            numeric_cols = df.select_dtypes(include=[np.number]).columns
+            if len(numeric_cols) > 0:
+                stats_df = df[numeric_cols].describe()
+                stats_str = stats_df.to_string()
+            else:
+                stats_str = "No numeric columns for statistics"
+        except Exception:
             stats_str = "Statistics not available"
         
         return {
@@ -63,9 +70,9 @@ class ExcelService:
             'dtypes': [str(dtype) for dtype in df.dtypes],
             'sample_data': sample_str,
             'statistics': stats_str,
-            'memory_usage': df.memory_usage(deep=True).sum(),
+            'memory_usage': int(df.memory_usage(deep=True).sum()),
             'null_counts': df.isnull().sum().to_dict(),
-            'has_duplicates': df.duplicated().any()
+            'has_duplicates': bool(df.duplicated().any())
         }
     
     def execute_query_code(
@@ -99,9 +106,11 @@ class ExcelService:
             return self._process_result(result, namespace['df'])
             
         except Exception as e:
+            error_details = traceback.format_exc()
             return {
                 'success': False,
-                'error': f"Execution error: {str(e)}\n{traceback.format_exc()}",
+                'error': f"Execution error: {str(e)}",
+                'error_details': error_details,
                 'result': None,
                 'result_type': None
             }
@@ -118,11 +127,10 @@ class ExcelService:
             result = result.replace([float('inf'), float('-inf')], None)
             result = result.where(pd.notna(result), None)
             
+            truncated = False
             if len(result) > self.max_result_rows:
                 result = result.head(self.max_result_rows)
                 truncated = True
-            else:
-                truncated = False
             
             return {
                 'success': True,
@@ -146,10 +154,14 @@ class ExcelService:
                 'error': None
             }
         
-        elif isinstance(result, (int, float, str, bool)):
-            if isinstance(result, float):
+        elif isinstance(result, (int, float, str, bool, np.integer, np.floating)):
+            if isinstance(result, (float, np.floating)):
                 if pd.isna(result) or result == float('inf') or result == float('-inf'):
                     result = None
+                else:
+                    result = float(result)
+            elif isinstance(result, (int, np.integer)):
+                result = int(result)
             
             return {
                 'success': True,
@@ -167,23 +179,32 @@ class ExcelService:
                 'error': None
             }
         
-        elif isinstance(result, list):
+        elif isinstance(result, (list, tuple)):
             return {
                 'success': True,
-                'result': result,
+                'result': list(result),
                 'result_type': 'list',
                 'length': len(result),
                 'error': None
             }
         
         else:
-            return {
-                'success': True,
-                'result': str(result),
-                'result_type': 'other',
-                'original_type': result_type,
-                'error': None
-            }
+            try:
+                result_str = str(result)
+                return {
+                    'success': True,
+                    'result': result_str,
+                    'result_type': 'other',
+                    'original_type': result_type,
+                    'error': None
+                }
+            except Exception:
+                return {
+                    'success': False,
+                    'error': f'Cannot serialize result of type {result_type}',
+                    'result': None,
+                    'result_type': None
+                }
     
     def save_dataframe(
         self, 
@@ -193,10 +214,13 @@ class ExcelService:
     ) -> str:
         
         try:
-            df.to_excel(filepath, sheet_name=sheet_name, index=False)
+            if filepath.endswith('.csv'):
+                df.to_csv(filepath, index=False)
+            else:
+                df.to_excel(filepath, sheet_name=sheet_name, index=False)
             return filepath
         except Exception as e:
-            raise ValueError(f"Error saving Excel file: {str(e)}")
+            raise ValueError(f"Error saving file: {str(e)}")
     
     def merge_dataframes(
         self,
@@ -208,12 +232,25 @@ class ExcelService:
     ) -> pd.DataFrame:
         
         try:
-            return pd.merge(
-                df1, 
-                df2, 
-                how=join_type,
-                left_on=left_on,
-                right_on=right_on
-            )
+            if left_on and right_on:
+                return pd.merge(
+                    df1, 
+                    df2, 
+                    how=join_type,
+                    left_on=left_on,
+                    right_on=right_on,
+                    suffixes=('_left', '_right')
+                )
+            else:
+                common_cols = list(set(df1.columns) & set(df2.columns))
+                if not common_cols:
+                    raise ValueError("No common columns found for join")
+                return pd.merge(
+                    df1,
+                    df2,
+                    how=join_type,
+                    on=common_cols[0],
+                    suffixes=('_left', '_right')
+                )
         except Exception as e:
             raise ValueError(f"Error merging DataFrames: {str(e)}")

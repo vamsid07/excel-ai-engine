@@ -3,6 +3,7 @@ import numpy as np
 from faker import Faker
 from datetime import datetime, timedelta
 import random
+from pathlib import Path
 
 
 class DataGenerator:
@@ -81,9 +82,14 @@ class DataGenerator:
         ]
         return random.choice(issues)
     
-    def save_to_excel(self, structured_df: pd.DataFrame, 
-                     unstructured_df: pd.DataFrame = None,
-                     filepath: str = "data/output/sample_data.xlsx"):
+    def save_to_excel(
+        self, 
+        structured_df: pd.DataFrame, 
+        unstructured_df: pd.DataFrame = None,
+        filepath: str = "data/output/sample_data.xlsx"
+    ):
+        
+        Path(filepath).parent.mkdir(parents=True, exist_ok=True)
         
         with pd.ExcelWriter(filepath, engine='openpyxl') as writer:
             structured_df.to_excel(writer, sheet_name='Structured_Data', index=False)

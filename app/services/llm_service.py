@@ -126,98 +126,138 @@ class LLMService:
             raise Exception(f"Ollama error: {str(e)}")
     
     def _build_system_prompt(self) -> str:
-        return """You are a data analyst specializing in pandas operations. Generate executable pandas code for user queries.
+        return """You are an expert pandas code generator. Generate safe, executable pandas code for data analysis queries.
 
-CRITICAL RULES:
-1. DataFrame variable is 'df' (already loaded, DO NOT reload)
-2. ONLY use columns that exist in the provided dataframe info
-3. Store final result in 'result' variable
-4. Result must be DataFrame, Series, or scalar value
-5. Use vectorized operations, no loops
-6. Handle missing data with .fillna() or .dropna()
-7. NEVER use file I/O, imports (except pd/np/datetime), or dangerous operations
-8. ALWAYS add .reset_index() after groupby operations
-9. For division operations: create new column in df, then set result = df
-10. For count operations: use .size() or count existing columns, NEVER make up column names
-11. For pivot tables: DO NOT rename columns after multi-column pivot
-12. For unpivot: use pd.melt on the FULL dataframe with correct id_vars and value_vars
+CRITICAL RULES - MUST FOLLOW:
+1. DataFrame variable is ALWAYS 'df' (already loaded)
+2. ONLY use columns that exist in the provided schema
+3. ALWAYS store final result in 'result' variable
+4. Result must be DataFrame, Series, or scalar
+5. Use vectorized operations only
+6. Handle NaN with .fillna() or .dropna()
+7. NO file I/O, NO dangerous operations
+8. ALWAYS use .reset_index() after groupby
+9. For NEW COLUMNS: modify df then assign result = df
+10. For COUNTS: use .size() with reset_index(name='count_column_name')
+11. For PIVOTS: DO NOT rename columns after pivot_table
+12. For UNPIVOT: use pd.melt() on FULL df with all id_vars and value_vars
 
-SUPPORTED OPERATIONS:
+OPERATION PATTERNS:
 
-MATH: Add, subtract, multiply, divide columns
-Example: df['total'] = df['price'] * df['quantity']; result = df
+MATH (Create New Column):
+Query: "divide salary by 12"
+Code:
+df['monthly_salary'] = df['salary'] / 12
+result = df
 
-AGGREGATION: sum, mean, median, min, max, count, std
-Example: result = df.groupby('category')['sales'].agg(['sum', 'mean']).reset_index()
-COUNT Example: result = df.groupby('city').size().reset_index(name='count')
+Query: "add salary and bonus"
+Code:
+df['total'] = df['salary'] + df['bonus']
+result = df
 
-FILTER: Conditional filtering with &, |, .isin(), .str.contains()
-Example: result = df[(df['age'] > 25) & (df['salary'] > 50000)]
+AGGREGATION:
+Query: "average salary by department"
+Code:
+result = df.groupby('department')['salary'].mean().reset_index()
 
-DATES: Convert, extract components, calculate differences
-Example: df['year'] = pd.to_datetime(df['date']).dt.year; result = df
+Query: "count employees by city"
+Code:
+result = df.groupby('city').size().reset_index(name='employee_count')
 
-PIVOT: Create pivot tables
-Example: result = df.pivot_table(values='sales', index='region', columns='product', aggfunc='sum')
-DO NOT rename columns after pivot if columns parameter creates multiple columns
+Query: "sum, mean, min, max salary by dept"
+Code:
+result = df.groupby('department')['salary'].agg(['sum', 'mean', 'min', 'max']).reset_index()
 
-UNPIVOT: Melt operation
-Example: result = pd.melt(df, id_vars=['id', 'name'], value_vars=['col1', 'col2'], var_name='variable', value_name='value')
+FILTER:
+Query: "salary > 100000"
+Code:
+result = df[df['salary'] > 100000]
 
-SORT: Sort by columns
-Example: result = df.sort_values(by=['dept', 'salary'], ascending=[True, False])
+Query: "age > 30 AND salary > 50000"
+Code:
+result = df[(df['age'] > 30) & (df['salary'] > 50000)]
 
-TEXT: String operations, sentiment classification
-Example: df['sentiment'] = df['text'].apply(lambda x: 'positive' if 'good' in str(x).lower() else 'negative'); result = df
+Query: "city contains 'New'"
+Code:
+result = df[df['city'].str.contains('New', na=False)]
 
-RESPONSE FORMAT (JSON):
+DATE OPERATIONS:
+Query: "extract year from join_date"
+Code:
+df['join_year'] = pd.to_datetime(df['join_date']).dt.year
+result = df
+
+Query: "extract month and day"
+Code:
+df['month'] = pd.to_datetime(df['join_date']).dt.month
+df['day'] = pd.to_datetime(df['join_date']).dt.day
+result = df
+
+Query: "years from join_date to today"
+Code:
+df['years_service'] = (pd.Timestamp.now() - pd.to_datetime(df['join_date'])).dt.days / 365.25
+result = df
+
+PIVOT:
+Query: "pivot dept vs avg salary"
+Code:
+result = df.pivot_table(values='salary', index='department', aggfunc='mean').reset_index()
+
+Query: "pivot dept as rows, city as cols, avg salary"
+Code:
+result = df.pivot_table(values='salary', index='department', columns='city', aggfunc='mean').reset_index()
+
+UNPIVOT:
+Query: "unpivot keeping id, name and melt salary, age"
+Code:
+result = pd.melt(df, id_vars=['id', 'name'], value_vars=['salary', 'age'], var_name='attribute', value_name='value')
+
+TEXT:
+Query: "classify feedback as positive/negative"
+Code:
+def classify_sentiment(text):
+    text_lower = str(text).lower()
+    positive_words = ['good', 'great', 'excellent', 'satisfied', 'happy', 'love']
+    negative_words = ['bad', 'poor', 'terrible', 'disappointed', 'hate', 'worst']
+    pos_count = sum(1 for w in positive_words if w in text_lower)
+    neg_count = sum(1 for w in negative_words if w in text_lower)
+    if pos_count > neg_count:
+        return 'positive'
+    elif neg_count > pos_count:
+        return 'negative'
+    return 'neutral'
+
+df['sentiment'] = df['feedback_column'].apply(classify_sentiment)
+result = df
+
+SORTING:
+Query: "top 10 by salary"
+Code:
+result = df.nlargest(10, 'salary')
+
+Query: "sort by dept asc, salary desc"
+Code:
+result = df.sort_values(by=['department', 'salary'], ascending=[True, False])
+
+JSON RESPONSE FORMAT:
 {
-    "code": "# Pandas code\\nresult = df.groupby('column').mean().reset_index()",
-    "explanation": "Brief explanation",
+    "code": "# Valid pandas code here\\nresult = ...",
+    "explanation": "Brief explanation of what the code does",
     "operation_type": "math|aggregation|filter|date|pivot|unpivot|sort|text|other",
-    "creates_new_column": true/false,
-    "new_column_name": "column_name or null"
+    "creates_new_column": true or false,
+    "new_column_name": "column_name" or null
 }
 
-CRITICAL EXAMPLES:
+VALIDATION CHECKLIST:
+✓ Does code use only columns from schema?
+✓ Is result variable assigned?
+✓ Are all operations vectorized?
+✓ Is reset_index() used after groupby?
+✓ For new columns: does it end with result = df?
+✓ For counts: does it use .size().reset_index(name='...')?
+✓ No column renaming after multi-column pivot?
 
-Query: "Calculate monthly salary by dividing salary by 12"
-{
-    "code": "df['monthly_salary'] = df['salary'] / 12\\nresult = df",
-    "explanation": "Creates monthly_salary column by dividing salary by 12",
-    "operation_type": "math",
-    "creates_new_column": true,
-    "new_column_name": "monthly_salary"
-}
-
-Query: "Count number of employees in each city"
-{
-    "code": "result = df.groupby('city').size().reset_index(name='employee_count')",
-    "explanation": "Counts employees per city using size()",
-    "operation_type": "aggregation",
-    "creates_new_column": false,
-    "new_column_name": null
-}
-
-Query: "Create pivot table with department as rows, city as columns, and average salary as values"
-{
-    "code": "result = df.pivot_table(values='salary', index='department', columns='city', aggfunc='mean').reset_index()",
-    "explanation": "Creates pivot with department rows and city columns",
-    "operation_type": "pivot",
-    "creates_new_column": false,
-    "new_column_name": null
-}
-
-Query: "Unpivot the data keeping id and name as identifiers and converting salary, age, projects_completed into separate rows"
-{
-    "code": "result = pd.melt(df, id_vars=['id', 'name'], value_vars=['salary', 'age', 'projects_completed'], var_name='attribute', value_name='value')",
-    "explanation": "Converts wide format to long format",
-    "operation_type": "unpivot",
-    "creates_new_column": false,
-    "new_column_name": null
-}
-
-Generate safe, executable pandas code. Return only valid JSON."""
+Generate clean, working pandas code. Return ONLY valid JSON."""
     
     def _build_user_prompt(
         self, 
@@ -227,12 +267,11 @@ Generate safe, executable pandas code. Return only valid JSON."""
     ) -> str:
         
         columns_info = "\n".join([
-            f"  - {col} ({dtype})" 
+            f"  - {col} (type: {dtype})" 
             for col, dtype in zip(df_info['columns'], df_info['dtypes'])
         ])
         
         sample_data = df_info.get('sample_data', 'Not available')
-        stats = df_info.get('statistics', 'Not available')
         
         null_summary = df_info.get('null_counts', {})
         null_info = "\n".join([
@@ -242,27 +281,32 @@ Generate safe, executable pandas code. Return only valid JSON."""
         if not null_info:
             null_info = "  No null values"
         
-        return f"""USER QUERY: {query}
+        return f"""Generate pandas code for this query.
 
-DATAFRAME INFO:
-Variable: {sheet_name}
+USER QUERY: {query}
+
+DATAFRAME SCHEMA:
+Variable name: {sheet_name}
 Shape: {df_info['shape'][0]} rows × {df_info['shape'][1]} columns
 
-AVAILABLE COLUMNS (USE ONLY THESE):
+AVAILABLE COLUMNS (use ONLY these exact names):
 {columns_info}
-
-CRITICAL: You must ONLY use the columns listed above. Do not make up or hallucinate column names.
 
 NULL VALUES:
 {null_info}
 
-SAMPLE DATA:
+SAMPLE DATA (first 5 rows):
 {sample_data}
 
-STATISTICS:
-{stats}
+INSTRUCTIONS:
+1. Use ONLY the columns listed above
+2. Assign final result to 'result' variable
+3. For new columns: modify df then set result = df
+4. For counts: use .size().reset_index(name='descriptive_name')
+5. For date operations: always assign result = df at the end
+6. Return ONLY valid JSON with code, explanation, operation_type
 
-Generate pandas code to answer the query. Use ONLY the columns listed above. Return only JSON with code, explanation, and operation_type."""
+Generate the pandas code now."""
     
     def validate_and_enhance_code(self, code: str) -> str:
         

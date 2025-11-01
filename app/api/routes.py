@@ -8,12 +8,11 @@ from app.services.excel_service import ExcelService
 from app.services.join_service import JoinService
 from app.services.export_service import ExportService
 from app.services.query_history import QueryHistory
+from app.services.text_service import TextAnalysisService
 import json
 import time
 import traceback
 import re
-from app.services.text_service import TextAnalysisService
-text_service = TextAnalysisService()
 
 router = APIRouter()
 
@@ -22,6 +21,7 @@ excel_service = ExcelService()
 join_service = JoinService()
 export_service = ExportService()
 query_history = QueryHistory()
+text_service = TextAnalysisService()
 
 
 def handle_error(error: Exception, operation: str) -> JSONResponse:
@@ -100,18 +100,17 @@ async def upload_excel(file: UploadFile = File(...)):
         Path("data/input").mkdir(parents=True, exist_ok=True)
         file_path = f"data/input/{file.filename}"
         
+        content = await file.read()
+        if not content:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Uploaded file is empty"
+            )
+        
         with open(file_path, "wb") as buffer:
-            content = await file.read()
-            if not content:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Uploaded file is empty"
-                )
             buffer.write(content)
         
-        sheets = excel_service.list_sheets(file_path)
         file_size = os.path.getsize(file_path)
-        
         max_size = 50 * 1024 * 1024
         if file_size > max_size:
             os.remove(file_path)
@@ -119,6 +118,8 @@ async def upload_excel(file: UploadFile = File(...)):
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
                 detail=f"File too large. Maximum 50MB, uploaded {file_size / (1024*1024):.2f}MB"
             )
+        
+        sheets = excel_service.list_sheets(file_path)
         
         return {
             "status": "success",
@@ -290,7 +291,7 @@ async def join_files(
         if how not in ['inner', 'left', 'right', 'outer']:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Invalid join type: {how}"
+                detail=f"Invalid join type: {how}. Must be one of: inner, left, right, outer"
             )
         
         df1, info1 = excel_service.read_excel(file1, sheet1)
@@ -361,7 +362,7 @@ async def export_result(
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, 
-                detail="Query result is not a DataFrame"
+                detail="Query result is not a DataFrame. Cannot export non-tabular results."
             )
         
         if formatted:
@@ -391,6 +392,7 @@ async def export_result(
         raise
     except Exception as e:
         return handle_error(e, "export_result")
+
 
 @router.post("/query-join")
 async def query_join(
@@ -428,7 +430,6 @@ async def query_join(
         
         join_columns = None
         on_pattern = r'on\s+(\w+)'
-        import re
         on_match = re.search(on_pattern, query_lower)
         if on_match:
             join_col = on_match.group(1)
@@ -472,6 +473,7 @@ async def query_join(
     except Exception as e:
         return handle_error(e, "query_join")
     
+
 @router.post("/analyze-text")
 async def analyze_text(
     filepath: str = Form(...),
@@ -517,6 +519,7 @@ async def analyze_text(
     except Exception as e:
         return handle_error(e, "analyze_text")
 
+
 @router.get("/download/{filename}")
 async def download_file(filename: str):
     try:
@@ -553,12 +556,15 @@ async def analyze_excel(
         
         df, df_info = excel_service.read_excel(filepath, sheet_name)
         
-        # Convert statistics to a more JSON-friendly format
         stats_dict = {}
         try:
-            stats_df = df.describe()
-            stats_dict = stats_df.to_dict()
-        except:
+            numeric_cols = df.select_dtypes(include=['number']).columns
+            if len(numeric_cols) > 0:
+                stats_df = df[numeric_cols].describe()
+                stats_dict = stats_df.to_dict()
+            else:
+                stats_dict = {"message": "No numeric columns available"}
+        except Exception:
             stats_dict = {"error": "Statistics not available"}
         
         return {
@@ -579,6 +585,7 @@ async def analyze_excel(
         raise
     except Exception as e:
         return handle_error(e, "analyze_excel")
+
 
 @router.get("/sheets/{filepath:path}")
 async def list_sheets(filepath: str):
@@ -647,7 +654,7 @@ async def health_check():
             import requests
             response = requests.get(f"{llm_service.ollama_url}/api/tags", timeout=5)
             llm_status = "operational" if response.status_code == 200 else "error"
-        except:
+        except Exception:
             llm_status = "error"
         
         return {
